@@ -24,8 +24,11 @@ import {
   onSaveShortcut,
   detectLanguage,
   isBinaryFile,
-  MAX_EDITOR_FILE_SIZE_BYTES
+  MAX_EDITOR_FILE_SIZE_BYTES,
+  getSelectedText,
+  replaceSelectedText
 } from './editor.js';
+import { initAI, updateContextBadge } from './ai.js';
 
 // Centralized Workspace State
 const workspaceState = {
@@ -1336,14 +1339,11 @@ function initPreview() {
 }
 
 /**
- * 18. AI Assistant Drawer
+ * 18. AI Assistant Drawer & Integration
  */
 function initAIAssistant() {
   const toggleAiBtn = document.getElementById('toggle-ai-btn');
   const aiPanel = document.getElementById('ai-sidebar-panel');
-  const sendBtn = document.getElementById('ai-send-btn');
-  const input = document.getElementById('ai-input-box');
-  const messagesBox = document.getElementById('ai-messages-container');
 
   if (toggleAiBtn && aiPanel) {
     toggleAiBtn.addEventListener('click', () => {
@@ -1352,44 +1352,31 @@ function initAIAssistant() {
     });
   }
 
-  if (sendBtn && input) {
-    const send = () => {
-      const text = input.value.trim();
-      if (!text) return;
-      appendChatMessage('user', text);
-      input.value = '';
-      setTimeout(() => {
-        appendChatMessage('assistant', 'I received your request. Multi-provider AI assistant integration will be fully activated in Phase 8.');
-      }, 500);
-    };
-
-    sendBtn.addEventListener('click', send);
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        send();
+  // Connect AI module to Monaco workspace bridge
+  initAI({
+    getActiveFile: () => {
+      if (!workspaceState.activeFileId) return null;
+      return workspaceState.openFiles.get(workspaceState.activeFileId) || null;
+    },
+    getSelectedCode: () => {
+      return getSelectedText();
+    },
+    replaceSelection: (replacement) => {
+      return replaceSelectedText(replacement);
+    },
+    setDirty: (dirty) => {
+      if (workspaceState.activeFileId) {
+        const fileTab = workspaceState.openFiles.get(workspaceState.activeFileId);
+        if (fileTab) {
+          fileTab.dirty = dirty;
+          renderTabs();
+          updateSaveState(dirty ? 'unsaved' : 'saved');
+        }
       }
-    });
-  }
-
-  const actionChips = document.querySelectorAll('.ai-action-chip');
-  actionChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      const action = chip.dataset.action;
-      appendChatMessage('user', `AI Action: ${action} current code`);
-      setTimeout(() => {
-        appendChatMessage('assistant', `Analyzing active file with Gemini... (Full autonomous AI coding assistance enabled in Phase 8).`);
-      }, 500);
-    });
+    },
+    getProjectId: () => {
+      return workspaceState.projectId;
+    }
   });
 }
 
-function appendChatMessage(role, text) {
-  const box = document.getElementById('ai-messages-container');
-  if (!box) return;
-  const msgDiv = document.createElement('div');
-  msgDiv.className = `ai-chat-bubble ${role}`;
-  msgDiv.innerHTML = `<strong>${role === 'user' ? 'Developer' : 'DevPilot AI'}</strong><div>${escapeHtml(text)}</div>`;
-  box.appendChild(msgDiv);
-  box.scrollTop = box.scrollHeight;
-}

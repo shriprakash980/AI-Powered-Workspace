@@ -437,3 +437,57 @@ export function onSaveShortcut(cb) {
 export function getEditor() {
   return editor;
 }
+
+/**
+ * Get selected code text from Monaco or fallback editor
+ */
+export function getSelectedText() {
+  if (!isFallbackMode && editor) {
+    const selection = editor.getSelection();
+    if (selection && !selection.isEmpty()) {
+      return editor.getModel()?.getValueInRange(selection) || '';
+    }
+    return '';
+  } else if (fallbackTextarea) {
+    const start = fallbackTextarea.selectionStart;
+    const end = fallbackTextarea.selectionEnd;
+    if (start !== end) {
+      return fallbackTextarea.value.substring(start, end);
+    }
+  }
+  return '';
+}
+
+/**
+ * Replace selected text (or full content if nothing selected) in Monaco editor
+ */
+export function replaceSelectedText(replacement) {
+  if (replacement == null) return false;
+  if (!isFallbackMode && editor) {
+    const selection = editor.getSelection();
+    if (selection && !selection.isEmpty()) {
+      editor.executeEdits('devpilot-ai', [
+        { range: selection, text: replacement, forceMoveMarkers: true }
+      ]);
+      editor.focus();
+      return true;
+    } else {
+      setContent(replacement);
+      return true;
+    }
+  } else if (fallbackTextarea) {
+    const start = fallbackTextarea.selectionStart;
+    const end = fallbackTextarea.selectionEnd;
+    if (start !== end) {
+      fallbackTextarea.value = fallbackTextarea.value.substring(0, start) + replacement + fallbackTextarea.value.substring(end);
+      fallbackTextarea.dispatchEvent(new Event('input'));
+      return true;
+    } else {
+      fallbackTextarea.value = replacement;
+      fallbackTextarea.dispatchEvent(new Event('input'));
+      return true;
+    }
+  }
+  return false;
+}
+

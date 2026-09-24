@@ -44,6 +44,22 @@ app:
     jwt-secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
     jwt-access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000} # 15 minutes in ms
     jwt-refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000} # 7 days in ms
+  ai:
+    default-provider: ${AI_DEFAULT_PROVIDER:OPENAI}
+    timeout-seconds: ${AI_TIMEOUT_SECONDS:30}
+    fallback-enabled: ${AI_FALLBACK_ENABLED:true}
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      model: ${OPENAI_MODEL:gpt-4o-mini}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com/v1}
+    gemini:
+      api-key: ${GEMINI_API_KEY:}
+      model: ${GEMINI_MODEL:gemini-1.5-flash}
+      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+      model: ${ANTHROPIC_MODEL:claude-3-5-sonnet-20241022}
+      base-url: ${ANTHROPIC_BASE_URL:https://api.anthropic.com/v1}
 
 # Spring Boot Actuator
 management:

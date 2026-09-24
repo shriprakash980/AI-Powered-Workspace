@@ -484,6 +484,117 @@
   color: var(--color-primary);
 }
 
+.ai-provider-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px var(--space-3);
+  background-color: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ai-select {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-size: 0.75rem;
+  padding: 3px 6px;
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: pointer;
+}
+
+.ai-select:focus {
+  border-color: var(--color-primary);
+}
+
+.ai-context-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px var(--space-3);
+  background-color: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
+.ai-context-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-mono);
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-typing-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 14px;
+  background-color: var(--color-primary);
+  margin-left: 2px;
+  vertical-align: middle;
+  animation: aiBlink 0.8s infinite;
+}
+
+@keyframes aiBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.ai-code-block {
+  margin: var(--space-2) 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background-color: #0d1117;
+  overflow: hidden;
+}
+
+.ai-code-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #161b22;
+  font-family: var(--font-family-mono);
+  font-size: 0.7rem;
+  color: #8b949e;
+  border-bottom: 1px solid #30363d;
+}
+
+.ai-copy-btn {
+  background: transparent;
+  border: none;
+  color: #8b949e;
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+}
+
+.ai-copy-btn:hover {
+  color: #c9d1d9;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.ai-code-block pre {
+  margin: 0;
+  padding: 8px;
+  overflow-x: auto;
+  font-family: var(--font-family-mono);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #e6edf3;
+}
+
 .ai-messages-container {
   flex: 1;
   overflow-y: auto;

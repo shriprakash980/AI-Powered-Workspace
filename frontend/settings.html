@@ -128,22 +128,24 @@
         <!-- AI Assistant Provider Preferences -->
         <section class="settings-section">
           <div class="settings-section-header">
-            <h2 class="settings-section-title">AI Provider Strategy</h2>
-            <p class="settings-section-desc">Active provider routing managed by backend environment variables</p>
+            <h2 class="settings-section-title">AI Provider Multi-Engine Routing</h2>
+            <p class="settings-section-desc">Active provider routing managed securely by backend environment variables and settings</p>
           </div>
 
-          <div class="settings-row">
-            <div class="settings-row-info">
-              <span class="settings-row-label">Current Provider</span>
-              <span class="settings-row-desc">Configured in Spring Boot application.yml</span>
+          <div id="ai-providers-status-list">
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <span class="settings-row-label">Fetching Provider Status...</span>
+                <span class="settings-row-desc">Checking OpenAI, Google Gemini, and Anthropic Claude configurations</span>
+              </div>
+              <span class="badge badge-neutral">Loading</span>
             </div>
-            <span class="badge badge-primary">Google Gemini 1.5 Pro</span>
           </div>
 
           <div class="settings-row">
             <div class="settings-row-info">
               <span class="settings-row-label">Human-in-the-Loop Diff Verification</span>
-              <span class="settings-row-desc">Require manual confirmation prior to modifying project files</span>
+              <span class="settings-row-desc">Requires manual review and explicit save (Ctrl+S) before changes touch persistent database</span>
             </div>
             <span class="badge badge-success">Enforced Always</span>
           </div>

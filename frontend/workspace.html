@@ -227,36 +227,75 @@
             <span class="ai-online-dot"></span>
             <strong>DevPilot AI</strong>
           </div>
-          <span class="badge badge-neutral">Assistant</span>
+          <div class="flex items-center gap-1">
+            <button class="btn btn-icon btn-ghost btn-xs" id="ai-new-chat-btn" title="New Conversation">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <button class="btn btn-icon btn-ghost btn-xs" id="ai-delete-chat-btn" title="Delete Active Conversation">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Provider & Conversation Selector Toolbar -->
+        <div class="ai-provider-toolbar">
+          <select id="ai-provider-select" class="ai-select" title="Choose AI Provider">
+            <option value="OPENAI">OpenAI</option>
+            <option value="GEMINI">Gemini</option>
+            <option value="ANTHROPIC">Claude</option>
+          </select>
+          <select id="ai-model-select" class="ai-select" title="Choose Model" style="flex: 1; min-width: 0;">
+            <option value="gpt-4o-mini">gpt-4o-mini</option>
+          </select>
+        </div>
+
+        <!-- Conversation History Thread Selector -->
+        <div style="padding: 4px 12px; background: var(--color-bg-secondary); border-bottom: 1px solid var(--color-border); display: flex; align-items: center; gap: 6px;">
+          <span class="text-xs text-muted">Thread:</span>
+          <select id="ai-conversation-select" class="ai-select" style="flex: 1; min-width: 0;">
+            <option value="">Current Thread</option>
+          </select>
+        </div>
+
+        <!-- Active Context Indicator Bar -->
+        <div class="ai-context-indicator" id="ai-context-indicator">
+          <span class="ai-context-badge" id="ai-active-file-badge">📄 No file open</span>
+          <span class="ai-context-badge" id="ai-selection-badge" style="display:none; color:var(--color-primary);">✂️ Selection (0)</span>
         </div>
 
         <!-- Quick Action Prompt Pills -->
         <div class="ai-quick-actions">
-          <button class="ai-action-chip" data-action="generate">Generate</button>
-          <button class="ai-action-chip" data-action="explain">Explain</button>
-          <button class="ai-action-chip" data-action="debug">Debug</button>
-          <button class="ai-action-chip" data-action="refactor">Refactor</button>
-          <button class="ai-action-chip" data-action="optimize">Optimize</button>
-          <button class="ai-action-chip" data-action="tests">Tests</button>
+          <button class="ai-action-chip" data-action="explain" title="Explain selected code">Explain</button>
+          <button class="ai-action-chip" data-action="fix" title="Fix bug in selected code">Fix Bug</button>
+          <button class="ai-action-chip" data-action="refactor" title="Refactor selected code">Refactor</button>
+          <button class="ai-action-chip" data-action="tests" title="Generate unit tests">Tests</button>
+          <button class="ai-action-chip" data-action="debug" title="Debug selected code">Debug</button>
+          <button class="ai-action-chip" data-action="document" title="Document selected code">Document</button>
+          <button class="ai-action-chip" data-action="generate" title="Generate code">Generate</button>
         </div>
 
         <!-- Chat Messages Container -->
         <div class="ai-messages-container" id="ai-messages-container">
           <div class="ai-chat-bubble assistant">
             <strong>DevPilot AI</strong>
-            <p>Welcome to DevPilot AI Workspace. Monaco Editor is initialized and ready. How can I help you build today?</p>
+            <p>Welcome to DevPilot AI Workspace! Select any code in Monaco Editor and click an Action Chip above, or chat below with multi-provider intelligence.</p>
           </div>
         </div>
 
         <!-- AI Input Wrapper -->
         <div class="ai-input-wrapper">
-          <textarea id="ai-input-box" class="ai-input-box" placeholder="Ask AI anything about your code..."></textarea>
+          <textarea id="ai-input-box" class="ai-input-box" placeholder="Ask AI anything or prompt an instruction... (Shift+Enter for newline)"></textarea>
           <div class="ai-input-controls">
-            <span class="text-xs text-muted">Press Enter to send</span>
-            <button class="btn btn-sm btn-primary" id="ai-send-btn">
-              <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-              <span>Send</span>
-            </button>
+            <span class="text-xs text-muted">Enter to send</span>
+            <div class="flex items-center gap-2">
+              <button class="btn btn-sm btn-ghost" id="ai-stop-btn" style="display: none; color: var(--color-danger);">
+                <span>Stop</span>
+              </button>
+              <button class="btn btn-sm btn-primary" id="ai-send-btn">
+                <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                <span>Send</span>
+              </button>
+            </div>
           </div>
         </div>
       </aside>

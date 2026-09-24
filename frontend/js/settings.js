@@ -48,4 +48,51 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Preferences Saved', 'Editor settings updated successfully.', 'success');
     });
   }
+
+  // Fetch and display active AI Providers
+  loadAIProviders();
 });
+
+async function loadAIProviders() {
+  const container = document.getElementById('ai-providers-status-list');
+  if (!container) return;
+
+  try {
+    const { apiRequest } = await import('./api.js');
+    const res = await apiRequest('/ai/providers');
+    const data = res.data;
+
+    if (!data || !data.providers) return;
+
+    let html = '';
+    data.providers.forEach(p => {
+      const isConfigured = p.configured;
+      const statusBadge = isConfigured
+        ? '<span class="badge badge-success">API Key Active</span>'
+        : '<span class="badge badge-warning">Simulated Fallback</span>';
+
+      html += `
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <span class="settings-row-label">${p.name}</span>
+            <span class="settings-row-desc">Default Model: <code>${p.defaultModel}</code> | Available: ${p.availableModels.join(', ')}</span>
+          </div>
+          ${statusBadge}
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML = `
+      <div class="settings-row">
+        <div class="settings-row-info">
+          <span class="settings-row-label text-muted">Offline / Unauthenticated</span>
+          <span class="settings-row-desc">Log in to view live AI provider availability.</span>
+        </div>
+        <span class="badge badge-neutral">Offline</span>
+      </div>
+    `;
+  }
+}
+
