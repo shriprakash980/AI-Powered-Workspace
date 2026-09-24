@@ -28,6 +28,7 @@ const cssFiles = [
   'dashboard.css',
   'workspace.css',
   'cicd.css',
+  'observability.css',
   'settings.css',
   'profile.css',
   'responsive.css'

@@ -14,6 +14,7 @@ import java.util.UUID;
 
 @Repository
 public interface DeploymentRepository extends JpaRepository<Deployment, UUID> {
+    List<Deployment> findByProjectId(UUID projectId);
     Page<Deployment> findByProjectIdOrderByCreatedAtDesc(UUID projectId, Pageable pageable);
     List<Deployment> findByProjectIdAndEnvironmentOrderByCreatedAtDesc(UUID projectId, DeploymentEnvironment environment);
     List<Deployment> findByProjectIdAndStatusOrderByCreatedAtDesc(UUID projectId, DeploymentStatus status);
