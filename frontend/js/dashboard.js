@@ -239,6 +239,81 @@ function setupEventListeners() {
     btn.addEventListener('click', () => openModal('create-project-modal'));
   });
 
+  const openImportBtns = document.querySelectorAll('[data-open-import-modal]');
+  openImportBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      openModal('import-github-modal');
+      checkGitHubImportAuthStatus();
+    });
+  });
+
+  // Auto-extract project name from repository URL
+  const importUrlInput = document.getElementById('import-repo-url');
+  const importNameInput = document.getElementById('import-project-name');
+  if (importUrlInput && importNameInput) {
+    importUrlInput.addEventListener('input', (e) => {
+      const url = e.target.value.trim();
+      const match = url.match(/\/([^/]+?)(\.git)?$/);
+      if (match && match[1] && !importNameInput.value) {
+        importNameInput.value = match[1].toLowerCase().replace(/[^a-z0-9-_]/g, '-');
+      }
+    });
+  }
+
+  // Import GitHub Repo Form Handler
+  const importForm = document.getElementById('import-github-form');
+  if (importForm) {
+    importForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const urlInput = document.getElementById('import-repo-url');
+      const nameInput = document.getElementById('import-project-name');
+      const descInput = document.getElementById('import-project-desc');
+      const submitBtn = document.getElementById('import-submit-btn');
+
+      const cloneUrl = urlInput?.value.trim();
+      const name = nameInput?.value.trim();
+      if (!cloneUrl || !name) {
+        showToast('Validation Error', 'Repository URL and project name are required.', 'error');
+        return;
+      }
+
+      setButtonLoading(submitBtn, true, 'Cloning & Importing Repository...');
+
+      try {
+        const { gitHubClient } = await import('./github.js');
+        const response = await gitHubClient.importRepository({
+          cloneUrl: cloneUrl,
+          name: name,
+          description: descInput?.value.trim() || 'Imported from GitHub repository.'
+        });
+
+        const newProject = response.data;
+        if (newProject) {
+          state.projects.unshift(newProject);
+          state.stats.projects = state.projects.length;
+          state.stats.activeProjects = state.projects.filter(p => p.status === 'ACTIVE').length;
+          renderStats();
+          renderProjects(state.projects);
+        }
+
+        setButtonLoading(submitBtn, false);
+        closeModal('import-github-modal');
+        importForm.reset();
+
+        showToast('Repository Imported', `Project '${name}' imported successfully! Opening workspace...`, 'success');
+        if (newProject && newProject.id) {
+          setTimeout(() => {
+            window.location.href = `workspace.html?project=${newProject.id}`;
+          }, 800);
+        }
+      } catch (err) {
+        setButtonLoading(submitBtn, false);
+        showToast('Import Failed', err.message || 'Error cloning repository from GitHub.', 'error');
+      }
+    });
+  }
+
   // Search Filter
   const searchInput = document.getElementById('project-search-input');
   if (searchInput) {
@@ -312,5 +387,31 @@ function setupEventListeners() {
         showToast('Error', errMsg, 'error');
       }
     });
+  }
+}
+
+async function checkGitHubImportAuthStatus() {
+  const banner = document.getElementById('github-import-auth-banner');
+  if (!banner) return;
+
+  try {
+    const { gitHubClient } = await import('./github.js');
+    const res = await gitHubClient.getStatus();
+    if (!res.data || !res.data.connected) {
+      banner.style.display = 'flex';
+      const connectBtn = document.getElementById('import-connect-github-btn');
+      if (connectBtn) {
+        connectBtn.onclick = async () => {
+          const authRes = await gitHubClient.startOAuth();
+          if (authRes && authRes.data && authRes.data.authorizationUrl) {
+            window.location.href = authRes.data.authorizationUrl;
+          }
+        };
+      }
+    } else {
+      banner.style.display = 'none';
+    }
+  } catch (err) {
+    banner.style.display = 'none';
   }
 }

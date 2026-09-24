@@ -26,9 +26,15 @@ import {
   isBinaryFile,
   MAX_EDITOR_FILE_SIZE_BYTES,
   getSelectedText,
-  replaceSelectedText
+  replaceSelectedText,
+  showDiff,
+  hideDiff,
+  toggleDiffSideBySide,
+  isDiffActive
 } from './editor.js';
 import { initAI, updateContextBadge } from './ai.js';
+import { gitClient } from './git.js';
+import { gitHubClient } from './github.js';
 
 // Centralized Workspace State
 const workspaceState = {
@@ -46,7 +52,10 @@ const workspaceState = {
   activeBottomTab: 'panel-terminal',
   contextTargetId: null,
   contextTargetIsDir: false,
-  closingTabId: null
+  closingTabId: null,
+  gitStatus: null,
+  gitStatusMap: new Map(),
+  githubRemoteOwnerRepo: null
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -60,6 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initPreferencesModal();
   initUnsavedModal();
   initAIAssistant();
+  initSourceControl();
+  initGitHubIntegration();
   initTerminal();
   initPreview();
   initGlobalShortcuts();
@@ -170,6 +181,10 @@ async function loadWorkspaceData(projectId) {
     const first = findFirstFile(workspaceState.tree);
     if (first) openFile(first.id);
   }
+
+  // Load Git & GitHub status
+  loadGitStatus();
+  loadGitHubStatus();
 }
 
 function flattenTree(nodes) {
@@ -286,11 +301,20 @@ function renderNodes(nodes, container, depth = 1) {
       fileDiv.className = `tree-node tree-file ${depth === 1 ? 'tree-node-nested' : 'tree-node-deep'} ${node.id === workspaceState.activeFileId ? 'active' : ''}`;
       fileDiv.dataset.fileId = node.id;
       fileDiv.dataset.fileName = node.name;
+      fileDiv.dataset.path = node.path || node.name;
+      fileDiv.setAttribute('title', node.path || node.name);
+
+      let gitBadgeHtml = '';
+      if (workspaceState.gitStatusMap && workspaceState.gitStatusMap.has(node.path)) {
+        const info = workspaceState.gitStatusMap.get(node.path);
+        gitBadgeHtml = `<span class="git-status-badge badge-${info.badgeClass}" title="${info.title}">${info.letter}</span>`;
+      }
 
       const fileIcon = getFileIcon(node.name, node.fileType);
       fileDiv.innerHTML = `
         <span>${fileIcon}</span>
         <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(node.name)}</span>
+        ${gitBadgeHtml}
       `;
 
       fileDiv.addEventListener('click', () => {
@@ -590,6 +614,7 @@ export async function saveActiveFile() {
     updateSaveStatus('saved');
     showToast('Saved', `Saved ${tab.name} successfully`, 'success');
     logOutput(`[Saved] ${tab.path} at ${new Date().toLocaleTimeString()}`);
+    loadGitStatus();
 
   } catch (err) {
     console.error('[Save File Error]', err);
@@ -1381,8 +1406,653 @@ function initAIAssistant() {
       openFile(fileId);
     },
     refreshExplorer: () => {
-      loadTree();
+      if (workspaceState.projectId) loadWorkspaceData(workspaceState.projectId);
     }
   });
+}
+
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'flex';
+}
+
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
+/**
+ * 19. Source Control (Git) Integration
+ */
+function initSourceControl() {
+  const actExplorer = document.getElementById('act-btn-explorer');
+  const actGit = document.getElementById('act-btn-git');
+  const actGitHub = document.getElementById('act-btn-github');
+
+  const panelExplorer = document.getElementById('file-explorer-panel');
+  const panelGit = document.getElementById('source-control-panel');
+  const panelGitHub = document.getElementById('github-panel');
+
+  function switchSidebarPanel(targetBtn, targetPanel) {
+    [actExplorer, actGit, actGitHub].forEach(b => b?.classList.remove('active'));
+    [panelExplorer, panelGit, panelGitHub].forEach(p => { if (p) p.style.display = 'none'; });
+
+    targetBtn?.classList.add('active');
+    if (targetPanel) targetPanel.style.display = 'flex';
+    layout();
+  }
+
+  if (actExplorer) actExplorer.addEventListener('click', () => switchSidebarPanel(actExplorer, panelExplorer));
+  if (actGit) actGit.addEventListener('click', () => { switchSidebarPanel(actGit, panelGit); loadGitStatus(); });
+  if (actGitHub) actGitHub.addEventListener('click', () => { switchSidebarPanel(actGitHub, panelGitHub); loadGitHubStatus(); });
+
+  document.getElementById('git-refresh-btn')?.addEventListener('click', () => loadGitStatus());
+
+  const initAction = async () => {
+    try {
+      showToast('Initializing Git', 'Creating Git repository in workspace...', 'info');
+      await gitClient.initRepository(workspaceState.projectId);
+      showToast('Git Repository Initialized', 'Git is ready for commits.', 'success');
+      loadGitStatus();
+    } catch (err) {
+      showToast('Git Init Failed', err.message || 'Failed to initialize Git', 'danger');
+    }
+  };
+  document.getElementById('git-init-btn')?.addEventListener('click', initAction);
+  document.getElementById('git-init-action-btn')?.addEventListener('click', initAction);
+
+  document.getElementById('git-stage-all-btn')?.addEventListener('click', async () => {
+    try {
+      await gitClient.stageAll(workspaceState.projectId);
+      loadGitStatus();
+    } catch (err) {
+      showToast('Stage All Failed', err.message, 'danger');
+    }
+  });
+
+  document.getElementById('git-unstage-all-btn')?.addEventListener('click', async () => {
+    try {
+      await gitClient.unstageAll(workspaceState.projectId);
+      loadGitStatus();
+    } catch (err) {
+      showToast('Unstage All Failed', err.message, 'danger');
+    }
+  });
+
+  const commitMsgInput = document.getElementById('git-commit-msg-input');
+  const commitBtn = document.getElementById('git-commit-btn');
+  const handleCommit = async () => {
+    const msg = commitMsgInput?.value.trim();
+    if (!msg) {
+      showToast('Commit Error', 'Please enter a commit message.', 'warning');
+      commitMsgInput?.focus();
+      return;
+    }
+    try {
+      await gitClient.commit(workspaceState.projectId, msg);
+      if (commitMsgInput) commitMsgInput.value = '';
+      showToast('Committed Successfully', `Created commit: "${msg}"`, 'success');
+      logOutput(`[Git Commit] ${msg}`);
+      loadGitStatus();
+    } catch (err) {
+      showToast('Commit Failed', err.message || 'Failed to commit staged changes', 'danger');
+    }
+  };
+
+  commitBtn?.addEventListener('click', handleCommit);
+  commitMsgInput?.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleCommit();
+    }
+  });
+
+  document.getElementById('git-ai-msg-btn')?.addEventListener('click', async () => {
+    try {
+      showToast('AI Generating', 'Analyzing staged diff to draft commit message...', 'info');
+      const res = await gitClient.generateAiCommitMessage(workspaceState.projectId);
+      if (res && res.data && res.data.message) {
+        if (commitMsgInput) commitMsgInput.value = res.data.message;
+        showToast('AI Commit Message', 'Drafted commit message from staged changes.', 'success');
+      } else {
+        showToast('AI Message', 'No staged changes or message generated.', 'warning');
+      }
+    } catch (err) {
+      showToast('AI Generation Failed', err.message, 'danger');
+    }
+  });
+
+  document.getElementById('git-switch-branch-btn')?.addEventListener('click', () => openSwitchBranchModal());
+  document.getElementById('status-git-branch-btn')?.addEventListener('click', () => openSwitchBranchModal());
+
+  document.getElementById('switch-branch-close-btn')?.addEventListener('click', () => closeModal('switch-branch-modal'));
+  document.getElementById('switch-branch-cancel-btn')?.addEventListener('click', () => closeModal('switch-branch-modal'));
+  document.getElementById('open-create-branch-btn')?.addEventListener('click', () => {
+    closeModal('switch-branch-modal');
+    openModal('create-branch-modal');
+  });
+
+  document.getElementById('create-branch-close-btn')?.addEventListener('click', () => closeModal('create-branch-modal'));
+  document.getElementById('create-branch-cancel-btn')?.addEventListener('click', () => closeModal('create-branch-modal'));
+  document.getElementById('create-branch-submit-btn')?.addEventListener('click', async () => {
+    const input = document.getElementById('new-branch-name-input');
+    const name = input?.value.trim();
+    if (!name) {
+      showToast('Branch Name Required', 'Please enter a valid branch name', 'warning');
+      input?.focus();
+      return;
+    }
+    try {
+      await gitClient.createBranch(workspaceState.projectId, name);
+      await gitClient.checkoutBranch(workspaceState.projectId, name);
+      closeModal('create-branch-modal');
+      if (input) input.value = '';
+      showToast('Branch Created', `Switched to branch '${name}'`, 'success');
+      loadGitStatus();
+      loadWorkspaceData(workspaceState.projectId);
+    } catch (err) {
+      showToast('Branch Creation Failed', err.message, 'danger');
+    }
+  });
+
+  document.getElementById('git-pull-btn')?.addEventListener('click', async () => {
+    try {
+      showToast('Pulling', 'Pulling changes from remote...', 'info');
+      const res = await gitClient.pull(workspaceState.projectId);
+      showToast('Pull Complete', res.data?.message || 'Pulled remote changes successfully.', 'success');
+      loadGitStatus();
+      loadWorkspaceData(workspaceState.projectId);
+    } catch (err) {
+      showToast('Pull Failed', err.message || 'Error pulling remote changes', 'danger');
+    }
+  });
+
+  document.getElementById('git-push-btn')?.addEventListener('click', async () => {
+    try {
+      showToast('Pushing', 'Pushing commits to remote...', 'info');
+      const res = await gitClient.push(workspaceState.projectId);
+      showToast('Push Complete', res.data?.message || 'Pushed commits to remote.', 'success');
+      loadGitStatus();
+    } catch (err) {
+      showToast('Push Failed', err.message || 'Error pushing commits to remote', 'danger');
+    }
+  });
+
+  document.getElementById('diff-toggle-mode-btn')?.addEventListener('click', () => toggleDiffSideBySide());
+  document.getElementById('diff-exit-btn')?.addEventListener('click', () => hideDiff());
+}
+
+async function loadGitStatus() {
+  if (!workspaceState.projectId) return;
+
+  try {
+    const res = await gitClient.getStatus(workspaceState.projectId);
+    const status = res.data;
+    workspaceState.gitStatus = status;
+
+    const uninitBox = document.getElementById('git-uninitialized-box');
+    const activeUi = document.getElementById('git-active-workspace-ui');
+    const initBtn = document.getElementById('git-init-btn');
+
+    if (!status.gitInitialized) {
+      if (uninitBox) uninitBox.style.display = 'block';
+      if (activeUi) activeUi.style.display = 'none';
+      if (initBtn) initBtn.style.display = 'block';
+      document.getElementById('status-git-branch-btn')?.setAttribute('style', 'display:none;');
+      return;
+    }
+
+    if (uninitBox) uninitBox.style.display = 'none';
+    if (activeUi) activeUi.style.display = 'flex';
+    if (initBtn) initBtn.style.display = 'none';
+
+    const currentBranch = status.currentBranch || 'main';
+    const branchLabel = document.getElementById('git-current-branch-label');
+    const statusBranchName = document.getElementById('status-git-branch-name');
+    const statusBranchBtn = document.getElementById('status-git-branch-btn');
+
+    if (branchLabel) branchLabel.textContent = currentBranch;
+    if (statusBranchName) statusBranchName.textContent = currentBranch;
+    if (statusBranchBtn) statusBranchBtn.style.display = 'inline-flex';
+
+    const stagedCount = status.staged ? status.staged.length : 0;
+    const changesCount = (status.modified ? status.modified.length : 0) +
+                         (status.untracked ? status.untracked.length : 0) +
+                         (status.missing ? status.missing.length : 0);
+    const totalCount = stagedCount + changesCount;
+
+    const badgeEl = document.getElementById('git-changes-badge');
+    if (badgeEl) {
+      badgeEl.textContent = totalCount;
+      badgeEl.style.display = totalCount > 0 ? 'inline-block' : 'none';
+    }
+
+    const stagedCountEl = document.getElementById('git-staged-count');
+    const changesCountEl = document.getElementById('git-changes-count');
+    if (stagedCountEl) stagedCountEl.textContent = stagedCount;
+    if (changesCountEl) changesCountEl.textContent = changesCount;
+
+    const conflictBanner = document.getElementById('git-conflict-banner');
+    if (conflictBanner) conflictBanner.style.display = status.hasConflicts ? 'block' : 'none';
+
+    const statusMap = new Map();
+    if (status.staged) {
+      status.staged.forEach(f => statusMap.set(f.path, { letter: f.status?.charAt(0).toUpperCase() || 'S', badgeClass: 'staged', title: `Staged (${f.status})` }));
+    }
+    if (status.modified) {
+      status.modified.forEach(f => statusMap.set(f.path, { letter: 'M', badgeClass: 'modified', title: 'Modified' }));
+    }
+    if (status.untracked) {
+      status.untracked.forEach(f => statusMap.set(f.path, { letter: 'U', badgeClass: 'untracked', title: 'Untracked' }));
+    }
+    if (status.missing) {
+      status.missing.forEach(f => statusMap.set(f.path, { letter: 'D', badgeClass: 'deleted', title: 'Deleted' }));
+    }
+    workspaceState.gitStatusMap = statusMap;
+
+    renderStagedList(status.staged || []);
+
+    const changesList = [
+      ...(status.modified || []).map(f => ({ ...f, changeType: 'M' })),
+      ...(status.untracked || []).map(f => ({ ...f, changeType: 'U' })),
+      ...(status.missing || []).map(f => ({ ...f, changeType: 'D' }))
+    ];
+    renderChangesList(changesList);
+
+    updateExplorerGitBadges();
+
+  } catch (err) {
+    console.warn('[Git Status Error]', err);
+  }
+}
+
+function renderStagedList(stagedFiles) {
+  const container = document.getElementById('git-staged-list');
+  if (!container) return;
+
+  if (stagedFiles.length === 0) {
+    container.innerHTML = '<div style="font-size:0.75rem; color:var(--color-text-muted); padding:4px 8px;">No staged changes.</div>';
+    return;
+  }
+
+  container.innerHTML = stagedFiles.map(f => `
+    <div class="git-file-item" data-path="${escapeHtml(f.path)}" data-staged="true">
+      <span class="git-file-icon">📄</span>
+      <span class="git-file-name" title="${escapeHtml(f.path)}">${escapeHtml(f.path)}</span>
+      <span class="git-file-status badge-staged">${escapeHtml(f.status?.charAt(0).toUpperCase() || 'S')}</span>
+      <button class="git-file-action" data-action="unstage" data-path="${escapeHtml(f.path)}" title="Unstage File">-</button>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.git-file-item').forEach(item => {
+    item.addEventListener('click', async (e) => {
+      if (e.target.dataset.action === 'unstage') {
+        e.stopPropagation();
+        try {
+          await gitClient.unstage(workspaceState.projectId, [item.dataset.path]);
+          loadGitStatus();
+        } catch (err) {
+          showToast('Unstage Error', err.message, 'danger');
+        }
+        return;
+      }
+      openDiffView(item.dataset.path, true);
+    });
+  });
+}
+
+function renderChangesList(changesFiles) {
+  const container = document.getElementById('git-changes-list');
+  if (!container) return;
+
+  if (changesFiles.length === 0) {
+    container.innerHTML = '<div style="font-size:0.75rem; color:var(--color-text-muted); padding:4px 8px;">Working tree clean.</div>';
+    return;
+  }
+
+  container.innerHTML = changesFiles.map(f => `
+    <div class="git-file-item" data-path="${escapeHtml(f.path)}" data-staged="false">
+      <span class="git-file-icon">📄</span>
+      <span class="git-file-name" title="${escapeHtml(f.path)}">${escapeHtml(f.path)}</span>
+      <span class="git-file-status badge-${f.changeType === 'M' ? 'modified' : (f.changeType === 'U' ? 'untracked' : 'deleted')}">${f.changeType}</span>
+      <button class="git-file-action" data-action="stage" data-path="${escapeHtml(f.path)}" title="Stage File">+</button>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('.git-file-item').forEach(item => {
+    item.addEventListener('click', async (e) => {
+      if (e.target.dataset.action === 'stage') {
+        e.stopPropagation();
+        try {
+          await gitClient.stage(workspaceState.projectId, [item.dataset.path]);
+          loadGitStatus();
+        } catch (err) {
+          showToast('Stage Error', err.message, 'danger');
+        }
+        return;
+      }
+      openDiffView(item.dataset.path, false);
+    });
+  });
+}
+
+async function openDiffView(filePath, isStaged) {
+  try {
+    const diffRes = await gitClient.getDiff(workspaceState.projectId, { path: filePath, staged: isStaged });
+    const diffData = diffRes.data;
+
+    const originalText = diffData ? diffData.originalContent || '' : '';
+    const modifiedText = diffData ? diffData.modifiedContent || '' : '';
+
+    const bannerFilename = document.getElementById('diff-banner-filename');
+    if (bannerFilename) bannerFilename.textContent = `${filePath} (${isStaged ? 'Staged' : 'Working Tree'})`;
+
+    showDiff(originalText, modifiedText, detectLanguage(filePath), filePath);
+  } catch (err) {
+    showToast('Diff Error', err.message || 'Could not load diff', 'danger');
+  }
+}
+
+function updateExplorerGitBadges() {
+  document.querySelectorAll('#explorer-tree .tree-file').forEach(fileNode => {
+    const path = fileNode.getAttribute('title') || fileNode.dataset.path;
+    const existingBadge = fileNode.querySelector('.git-status-badge');
+    if (existingBadge) existingBadge.remove();
+
+    if (path && workspaceState.gitStatusMap && workspaceState.gitStatusMap.has(path)) {
+      const info = workspaceState.gitStatusMap.get(path);
+      const span = document.createElement('span');
+      span.className = `git-status-badge badge-${info.badgeClass}`;
+      span.title = info.title;
+      span.textContent = info.letter;
+      fileNode.appendChild(span);
+    }
+  });
+}
+
+async function openSwitchBranchModal() {
+  const container = document.getElementById('branches-list-container');
+  openModal('switch-branch-modal');
+
+  if (container) {
+    container.innerHTML = '<div style="font-size:0.8rem; color:var(--color-text-muted); text-align:center; padding:12px;">Loading branches...</div>';
+  }
+
+  try {
+    const res = await gitClient.getBranches(workspaceState.projectId);
+    const branches = res.data || [];
+
+    if (!container) return;
+
+    if (branches.length === 0) {
+      container.innerHTML = '<div style="font-size:0.8rem; color:var(--color-text-muted); text-align:center;">No branches found.</div>';
+      return;
+    }
+
+    container.innerHTML = branches.map(b => `
+      <div class="git-branch-item ${b.current ? 'active' : ''}" data-branch="${escapeHtml(b.name)}" style="display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:var(--radius-sm); border:1px solid var(--color-border); background:var(--color-bg-primary); cursor:pointer;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span>${b.current ? '⭐' : '🌿'}</span>
+          <strong style="font-size:0.85rem; color:${b.current ? 'var(--color-primary)' : 'var(--color-text-primary)'};">${escapeHtml(b.name)}</strong>
+        </div>
+        ${b.current ? '<span class="badge badge-success">CURRENT</span>' : '<span class="text-xs text-muted">Checkout &rarr;</span>'}
+      </div>
+    `).join('');
+
+    container.querySelectorAll('.git-branch-item').forEach(item => {
+      item.addEventListener('click', async () => {
+        const targetBranch = item.dataset.branch;
+        if (targetBranch === workspaceState.gitStatus?.currentBranch) {
+          closeModal('switch-branch-modal');
+          return;
+        }
+        try {
+          await gitClient.checkoutBranch(workspaceState.projectId, targetBranch);
+          closeModal('switch-branch-modal');
+          showToast('Branch Switch', `Switched to branch '${targetBranch}'`, 'success');
+          loadGitStatus();
+          loadWorkspaceData(workspaceState.projectId);
+        } catch (err) {
+          showToast('Checkout Failed', err.message || 'Uncommitted changes conflict', 'danger');
+        }
+      });
+    });
+
+  } catch (err) {
+    if (container) container.innerHTML = `<div style="font-size:0.8rem; color:var(--color-danger); text-align:center;">Failed to load branches: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+/**
+ * 20. GitHub Integration
+ */
+function initGitHubIntegration() {
+  document.getElementById('github-refresh-btn')?.addEventListener('click', () => loadGitHubStatus());
+
+  document.getElementById('github-connect-btn')?.addEventListener('click', async () => {
+    try {
+      const res = await gitHubClient.startOAuth();
+      if (res && res.data && res.data.authorizationUrl) {
+        window.location.href = res.data.authorizationUrl;
+      } else {
+        showToast('OAuth Error', 'Could not obtain GitHub authorization URL', 'danger');
+      }
+    } catch (err) {
+      showToast('GitHub Connect Error', err.message, 'danger');
+    }
+  });
+
+  document.getElementById('github-disconnect-btn')?.addEventListener('click', async () => {
+    try {
+      await gitHubClient.disconnect();
+      showToast('Disconnected', 'GitHub account unlinked successfully.', 'info');
+      loadGitHubStatus();
+    } catch (err) {
+      showToast('Disconnect Failed', err.message, 'danger');
+    }
+  });
+
+  document.getElementById('github-add-remote-btn')?.addEventListener('click', () => openModal('add-remote-modal'));
+  document.getElementById('add-remote-close-btn')?.addEventListener('click', () => closeModal('add-remote-modal'));
+  document.getElementById('add-remote-cancel-btn')?.addEventListener('click', () => closeModal('add-remote-modal'));
+
+  document.getElementById('add-remote-submit-btn')?.addEventListener('click', async () => {
+    const nameInput = document.getElementById('remote-name-input');
+    const urlInput = document.getElementById('remote-url-input');
+    const name = nameInput?.value.trim() || 'origin';
+    const url = urlInput?.value.trim();
+
+    if (!url) {
+      showToast('URL Required', 'Please enter a valid Git repository URL.', 'warning');
+      urlInput?.focus();
+      return;
+    }
+
+    try {
+      await gitClient.addRemote(workspaceState.projectId, name, url);
+      closeModal('add-remote-modal');
+      showToast('Remote Configured', `Remote '${name}' set to ${url}`, 'success');
+      loadGitHubStatus();
+    } catch (err) {
+      showToast('Add Remote Failed', err.message, 'danger');
+    }
+  });
+
+  document.getElementById('github-new-pr-btn')?.addEventListener('click', () => openCreatePrModal());
+  document.getElementById('create-pr-close-btn')?.addEventListener('click', () => closeModal('create-pr-modal'));
+  document.getElementById('create-pr-cancel-btn')?.addEventListener('click', () => closeModal('create-pr-modal'));
+
+  document.getElementById('create-pr-submit-btn')?.addEventListener('click', async () => {
+    const titleInput = document.getElementById('pr-title-input');
+    const bodyInput = document.getElementById('pr-body-input');
+    const headSelect = document.getElementById('pr-head-select');
+    const baseInput = document.getElementById('pr-base-input');
+
+    const title = titleInput?.value.trim();
+    const head = headSelect?.value || workspaceState.gitStatus?.currentBranch || 'main';
+    const base = baseInput?.value.trim() || 'main';
+
+    if (!title) {
+      showToast('PR Title Required', 'Please enter a title for the Pull Request.', 'warning');
+      titleInput?.focus();
+      return;
+    }
+
+    if (!workspaceState.githubRemoteOwnerRepo) {
+      showToast('No GitHub Remote', 'Configure a GitHub remote before opening pull requests.', 'warning');
+      return;
+    }
+
+    const { owner, repo } = workspaceState.githubRemoteOwnerRepo;
+
+    try {
+      await gitHubClient.createPullRequest(owner, repo, { title, body: bodyInput?.value.trim(), head, base });
+      closeModal('create-pr-modal');
+      showToast('PR Created', `Pull request '${title}' opened on GitHub!`, 'success');
+      loadPullRequests(owner, repo, 'open');
+    } catch (err) {
+      showToast('PR Creation Failed', err.message, 'danger');
+    }
+  });
+
+  document.getElementById('pr-filter-open')?.addEventListener('click', () => {
+    document.getElementById('pr-filter-open')?.classList.add('active');
+    document.getElementById('pr-filter-closed')?.classList.remove('active');
+    if (workspaceState.githubRemoteOwnerRepo) {
+      loadPullRequests(workspaceState.githubRemoteOwnerRepo.owner, workspaceState.githubRemoteOwnerRepo.repo, 'open');
+    }
+  });
+
+  document.getElementById('pr-filter-closed')?.addEventListener('click', () => {
+    document.getElementById('pr-filter-closed')?.classList.add('active');
+    document.getElementById('pr-filter-open')?.classList.remove('active');
+    if (workspaceState.githubRemoteOwnerRepo) {
+      loadPullRequests(workspaceState.githubRemoteOwnerRepo.owner, workspaceState.githubRemoteOwnerRepo.repo, 'closed');
+    }
+  });
+
+  document.getElementById('pr-detail-close-btn')?.addEventListener('click', () => closeModal('pr-details-modal'));
+  document.getElementById('pr-detail-ok-btn')?.addEventListener('click', () => closeModal('pr-details-modal'));
+}
+
+async function loadGitHubStatus() {
+  const disconnectedBox = document.getElementById('github-disconnected-box');
+  const connectedBox = document.getElementById('github-connected-box');
+
+  try {
+    const res = await gitHubClient.getStatus();
+    const status = res.data;
+
+    if (!status.connected) {
+      if (disconnectedBox) disconnectedBox.style.display = 'block';
+      if (connectedBox) connectedBox.style.display = 'none';
+      return;
+    }
+
+    if (disconnectedBox) disconnectedBox.style.display = 'none';
+    if (connectedBox) connectedBox.style.display = 'flex';
+
+    const usernameLabel = document.getElementById('github-username-label');
+    if (usernameLabel) usernameLabel.textContent = `@${status.username}`;
+
+    if (workspaceState.projectId) {
+      const remotesRes = await gitClient.getRemotes(workspaceState.projectId);
+      const remotes = remotesRes.data || [];
+
+      const remoteInfo = document.getElementById('github-remote-info');
+      const origin = remotes.find(r => r.name === 'origin') || remotes[0];
+
+      if (origin) {
+        if (remoteInfo) remoteInfo.textContent = `${origin.name}: ${origin.repositoryUrl}`;
+
+        const match = origin.repositoryUrl.match(/github\.com[:/]([^/]+)\/([^/.]+)/);
+        if (match) {
+          const owner = match[1];
+          const repo = match[2].replace(/\.git$/, '');
+          workspaceState.githubRemoteOwnerRepo = { owner, repo };
+          loadPullRequests(owner, repo, 'open');
+        }
+      } else {
+        if (remoteInfo) remoteInfo.textContent = 'No remote configured.';
+        workspaceState.githubRemoteOwnerRepo = null;
+      }
+    }
+
+  } catch (err) {
+    console.warn('[GitHub Status Error]', err);
+  }
+}
+
+async function loadPullRequests(owner, repo, state = 'open') {
+  const listContainer = document.getElementById('github-pr-list');
+  if (!listContainer) return;
+
+  listContainer.innerHTML = '<div style="font-size:0.75rem; color:var(--color-text-muted); padding:6px 0;">Loading PRs...</div>';
+
+  try {
+    const res = await gitHubClient.getPullRequests(owner, repo, state);
+    const prs = res.data || [];
+
+    if (prs.length === 0) {
+      listContainer.innerHTML = `<div style="font-size:0.75rem; color:var(--color-text-muted); padding:6px 0;">No ${state} pull requests.</div>`;
+      return;
+    }
+
+    listContainer.innerHTML = prs.map(pr => `
+      <div class="git-file-item" data-pr-number="${pr.number}" style="cursor:pointer; flex-direction:column; align-items:flex-start; gap:2px; padding:6px 8px;">
+        <div class="flex items-center justify-between" style="width:100%;">
+          <strong style="font-size:0.8rem; color:var(--color-text-primary);">#${pr.number} ${escapeHtml(pr.title)}</strong>
+          <span class="badge ${pr.state === 'open' ? 'badge-success' : 'badge-neutral'}">${pr.state}</span>
+        </div>
+        <div style="font-size:0.7rem; color:var(--color-text-muted);">
+          ${escapeHtml(pr.headRef)} &rarr; ${escapeHtml(pr.baseRef)} by @${escapeHtml(pr.userLogin)}
+        </div>
+      </div>
+    `).join('');
+
+    listContainer.querySelectorAll('.git-file-item').forEach((item, idx) => {
+      item.addEventListener('click', () => {
+        openPrDetailsModal(prs[idx]);
+      });
+    });
+
+  } catch (err) {
+    if (listContainer) listContainer.innerHTML = `<div style="font-size:0.75rem; color:var(--color-danger); padding:6px 0;">Error loading PRs: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function openCreatePrModal() {
+  const headSelect = document.getElementById('pr-head-select');
+  openModal('create-pr-modal');
+
+  if (headSelect && workspaceState.gitStatus) {
+    gitClient.getBranches(workspaceState.projectId).then(res => {
+      const branches = res.data || [];
+      headSelect.innerHTML = branches.map(b => `<option value="${escapeHtml(b.name)}" ${b.current ? 'selected' : ''}>${escapeHtml(b.name)}</option>`).join('');
+    }).catch(() => {
+      headSelect.innerHTML = `<option value="${escapeHtml(workspaceState.gitStatus?.currentBranch || 'main')}">${escapeHtml(workspaceState.gitStatus?.currentBranch || 'main')}</option>`;
+    });
+  }
+}
+
+function openPrDetailsModal(pr) {
+  const titleEl = document.getElementById('pr-detail-title');
+  const stateEl = document.getElementById('pr-detail-state');
+  const authorEl = document.getElementById('pr-detail-author');
+  const branchEl = document.getElementById('pr-detail-branches');
+  const bodyEl = document.getElementById('pr-detail-body');
+  const linkEl = document.getElementById('pr-detail-github-link');
+
+  if (titleEl) titleEl.textContent = `#${pr.number} ${pr.title}`;
+  if (stateEl) {
+    stateEl.textContent = pr.state.toUpperCase();
+    stateEl.className = `badge ${pr.state === 'open' ? 'badge-success' : 'badge-neutral'}`;
+  }
+  if (authorEl) authorEl.textContent = `by @${pr.userLogin}`;
+  if (branchEl) branchEl.textContent = `${pr.headRef} -> ${pr.baseRef}`;
+  if (bodyEl) bodyEl.textContent = pr.body || 'No description provided.';
+  if (linkEl) linkEl.href = pr.htmlUrl || '#';
+
+  openModal('pr-details-modal');
 }
 

@@ -47,6 +47,18 @@ public class Project {
     @Column(name = "deployment_url", length = 500)
     private String deploymentUrl;
 
+    @Column(name = "git_enabled", nullable = false)
+    private boolean gitEnabled = false;
+
+    @Column(name = "default_branch", length = 100)
+    private String defaultBranch = "main";
+
+    @Column(name = "git_provider", length = 50)
+    private String gitProvider = "GIT";
+
+    @Column(name = "last_fetched_at")
+    private Instant lastFetchedAt;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -59,7 +71,8 @@ public class Project {
 
     public Project(UUID id, String name, String description, ProjectTemplate template, String language,
                    String framework, ProjectStatus status, UUID ownerId, String repositoryUrl,
-                   String deploymentUrl, Instant createdAt, Instant updatedAt) {
+                   String deploymentUrl, boolean gitEnabled, String defaultBranch, String gitProvider,
+                   Instant lastFetchedAt, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -70,6 +83,10 @@ public class Project {
         this.ownerId = ownerId;
         this.repositoryUrl = repositoryUrl;
         this.deploymentUrl = deploymentUrl;
+        this.gitEnabled = gitEnabled;
+        this.defaultBranch = defaultBranch != null ? defaultBranch : "main";
+        this.gitProvider = gitProvider != null ? gitProvider : "GIT";
+        this.lastFetchedAt = lastFetchedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -108,6 +125,18 @@ public class Project {
     public String getDeploymentUrl() { return deploymentUrl; }
     public void setDeploymentUrl(String deploymentUrl) { this.deploymentUrl = deploymentUrl; }
 
+    public boolean isGitEnabled() { return gitEnabled; }
+    public void setGitEnabled(boolean gitEnabled) { this.gitEnabled = gitEnabled; }
+
+    public String getDefaultBranch() { return defaultBranch; }
+    public void setDefaultBranch(String defaultBranch) { this.defaultBranch = defaultBranch; }
+
+    public String getGitProvider() { return gitProvider; }
+    public void setGitProvider(String gitProvider) { this.gitProvider = gitProvider; }
+
+    public Instant getLastFetchedAt() { return lastFetchedAt; }
+    public void setLastFetchedAt(Instant lastFetchedAt) { this.lastFetchedAt = lastFetchedAt; }
+
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 
@@ -125,6 +154,10 @@ public class Project {
         private UUID ownerId;
         private String repositoryUrl;
         private String deploymentUrl;
+        private boolean gitEnabled = false;
+        private String defaultBranch = "main";
+        private String gitProvider = "GIT";
+        private Instant lastFetchedAt;
         private Instant createdAt;
         private Instant updatedAt;
 
@@ -138,11 +171,16 @@ public class Project {
         public Builder ownerId(UUID ownerId) { this.ownerId = ownerId; return this; }
         public Builder repositoryUrl(String repositoryUrl) { this.repositoryUrl = repositoryUrl; return this; }
         public Builder deploymentUrl(String deploymentUrl) { this.deploymentUrl = deploymentUrl; return this; }
+        public Builder gitEnabled(boolean gitEnabled) { this.gitEnabled = gitEnabled; return this; }
+        public Builder defaultBranch(String defaultBranch) { this.defaultBranch = defaultBranch; return this; }
+        public Builder gitProvider(String gitProvider) { this.gitProvider = gitProvider; return this; }
+        public Builder lastFetchedAt(Instant lastFetchedAt) { this.lastFetchedAt = lastFetchedAt; return this; }
         public Builder createdAt(Instant createdAt) { this.createdAt = createdAt; return this; }
         public Builder updatedAt(Instant updatedAt) { this.updatedAt = updatedAt; return this; }
 
         public Project build() {
-            return new Project(id, name, description, template, language, framework, status, ownerId, repositoryUrl, deploymentUrl, createdAt, updatedAt);
+            return new Project(id, name, description, template, language, framework, status, ownerId, repositoryUrl,
+                    deploymentUrl, gitEnabled, defaultBranch, gitProvider, lastFetchedAt, createdAt, updatedAt);
         }
     }
 }

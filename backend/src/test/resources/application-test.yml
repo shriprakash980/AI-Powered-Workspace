@@ -32,4 +32,15 @@ app:
     anthropic:
       api-key: ""
       model: claude-3-5-sonnet-20241022
+  git:
+    workspace-root: ${java.io.tmpdir}/devpilot-test-workspaces
+    max-repo-size-mb: 500
+    max-file-count: 10000
+    max-file-size-mb: 25
+  github:
+    client-id: "test-client-id"
+    client-secret: "test-client-secret"
+    redirect-uri: "http://localhost:5500/settings.html?github=callback"
+    encryption-key: "devpilot-test-encryption-key-32c!"
+    api-base-url: "https://api.github.com"
 

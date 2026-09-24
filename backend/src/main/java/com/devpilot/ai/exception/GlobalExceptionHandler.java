@@ -177,6 +177,62 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
+    @ExceptionHandler(com.devpilot.ai.git.exception.GitConflictException.class)
+    public ResponseEntity<ErrorResponse> handleGitConflictException(com.devpilot.ai.git.exception.GitConflictException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .success(false)
+                .message(ex.getMessage())
+                .errorCode(ex.getConflictType())
+                .conflict(ex.getConflictingFiles())
+                .path(request.getRequestURI())
+                .timestamp(Instant.now().toString())
+                .build();
+
+        log.warn("Git conflict on path {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(com.devpilot.ai.git.exception.GitException.class)
+    public ResponseEntity<ErrorResponse> handleGitException(com.devpilot.ai.git.exception.GitException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .success(false)
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .timestamp(Instant.now().toString())
+                .build();
+
+        log.warn("Git error on path {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    @ExceptionHandler(com.devpilot.ai.git.exception.GitHubRateLimitException.class)
+    public ResponseEntity<ErrorResponse> handleGitHubRateLimitException(com.devpilot.ai.git.exception.GitHubRateLimitException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .success(false)
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .timestamp(Instant.now().toString())
+                .build();
+
+        log.warn("GitHub rate limited on path {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(errorResponse);
+    }
+
+    @ExceptionHandler(com.devpilot.ai.git.exception.GitHubApiException.class)
+    public ResponseEntity<ErrorResponse> handleGitHubApiException(com.devpilot.ai.git.exception.GitHubApiException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .success(false)
+                .message(ex.getMessage())
+                .path(request.getRequestURI())
+                .timestamp(Instant.now().toString())
+                .build();
+
+        log.warn("GitHub API error on path {}: status={}, code={}, message={}", request.getRequestURI(), ex.getStatusCode(), ex.getErrorCode(), ex.getMessage());
+        HttpStatus status = HttpStatus.resolve(ex.getStatusCode());
+        if (status == null) status = HttpStatus.BAD_GATEWAY;
+        return ResponseEntity.status(status).body(errorResponse);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, HttpServletRequest request) {
         ErrorResponse errorResponse = ErrorResponse.builder()

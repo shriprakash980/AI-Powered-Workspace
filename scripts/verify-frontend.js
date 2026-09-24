@@ -37,6 +37,8 @@ const jsFiles = [
   'storage.js',
   'utils.js',
   'api.js',
+  'git.js',
+  'github.js',
   'components.js',
   'navigation.js',
   'landing.js',

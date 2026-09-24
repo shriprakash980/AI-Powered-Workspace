@@ -49,7 +49,7 @@
           <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           <span>Deployments</span>
         </a>
-        <a href="#" class="sidebar-link" onclick="alert('GitHub repository sync available in Phase 12.'); return false;">
+        <a href="#" class="sidebar-link" data-open-import-modal>
           <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
           <span>GitHub</span>
         </a>
@@ -94,6 +94,10 @@
           <button class="btn btn-icon btn-ghost" aria-label="Notifications" onclick="alert('No unread notifications.');">
             <svg class="icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
           </button>
+          <button class="btn btn-secondary btn-sm" data-open-import-modal>
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+            <span>Import Repo</span>
+          </button>
           <button class="btn btn-primary btn-sm" data-open-create-modal>
             <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             <span>New Project</span>
@@ -109,10 +113,16 @@
             <h1 class="welcome-title">Welcome back, Developer</h1>
             <p class="welcome-subtitle">Here is what is happening across your developer workspaces today.</p>
           </div>
-          <button class="btn btn-primary" data-open-create-modal>
-            <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            <span>+ New Project</span>
-          </button>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary" data-open-import-modal>
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+              <span>Import GitHub Repo</span>
+            </button>
+            <button class="btn btn-primary" data-open-create-modal>
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>+ New Project</span>
+            </button>
+          </div>
         </section>
 
         <!-- Metric Statistics Cards Grid (Bound dynamically via dashboard.js) -->
@@ -235,6 +245,43 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
           <button type="submit" class="btn btn-primary" id="create-submit-btn">Create Project</button>
+        </div>
+      </form>
+  <!-- Import GitHub Repository Modal -->
+  <div class="modal-backdrop" id="import-github-modal" role="dialog" aria-modal="true" aria-labelledby="modal-import-title" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-import-title">Import Repository from GitHub</h3>
+        <button class="modal-close" data-close-modal aria-label="Close dialog">&times;</button>
+      </div>
+
+      <form id="import-github-form">
+        <div class="modal-body">
+          <div id="github-import-auth-banner" class="mb-3" style="display: none; background: var(--color-bg-primary); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--color-border); font-size: 0.85rem;">
+            <span>GitHub account not connected.</span>
+            <button type="button" class="btn btn-xs btn-primary ml-2" id="import-connect-github-btn">Connect GitHub</button>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="import-repo-url" class="form-label">Repository Clone URL / HTTPS URL</label>
+            <input type="url" id="import-repo-url" class="form-control" placeholder="https://github.com/username/repository.git" required>
+            <span class="text-xs text-muted">Enter any GitHub repository HTTPS clone URL.</span>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="import-project-name" class="form-label">DevPilot Project Name</label>
+            <input type="text" id="import-project-name" class="form-control" placeholder="my-cloned-repo" required>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="import-project-desc" class="form-label">Description</label>
+            <textarea id="import-project-desc" class="form-control" rows="2" placeholder="Imported from GitHub"></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-primary" id="import-submit-btn">Clone & Import</button>
         </div>
       </form>
     </div>

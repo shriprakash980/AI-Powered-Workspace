@@ -85,6 +85,20 @@
 
     <!-- Workspace Main Body Viewport -->
     <div class="workspace-body" id="workspace-body">
+      <!-- 0. Leftmost Activity Bar (VS Code style strip) -->
+      <nav class="workspace-activity-bar" id="workspace-activity-bar">
+        <button class="activity-bar-btn active" id="act-btn-explorer" title="Explorer (Files)" data-panel="file-explorer-panel">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        </button>
+        <button class="activity-bar-btn" id="act-btn-git" title="Source Control (Git)" data-panel="source-control-panel">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+          <span class="activity-badge" id="git-changes-badge" style="display:none;">0</span>
+        </button>
+        <button class="activity-bar-btn" id="act-btn-github" title="GitHub (Pull Requests & Remotes)" data-panel="github-panel">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        </button>
+      </nav>
+
       <!-- 1. Left Panel: File Explorer -->
       <aside class="file-explorer" id="file-explorer-panel">
         <div class="explorer-header">
@@ -104,6 +118,139 @@
 
         <div class="explorer-tree" id="explorer-tree">
           <!-- Dynamically populated by workspace.js -->
+        </div>
+      </aside>
+
+      <!-- 1b. Left Panel: Source Control (Git) -->
+      <aside class="source-control-sidebar" id="source-control-panel" style="display: none;">
+        <div class="git-panel-header">
+          <span>Source Control</span>
+          <div class="flex items-center gap-1">
+            <button class="btn btn-icon btn-ghost btn-xs" id="git-refresh-btn" title="Refresh Git Status">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            </button>
+            <button class="btn btn-icon btn-ghost btn-xs" id="git-init-btn" title="Initialize Git Repository" style="display:none;">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="git-panel-body">
+          <!-- Uninitialized banner -->
+          <div id="git-uninitialized-box" style="display:none; text-align:center; padding: 20px 10px;">
+            <p style="font-size:0.85rem; color:var(--color-text-muted); margin-bottom:12px;">This project does not have a Git repository initialized yet.</p>
+            <button class="btn btn-sm btn-primary" id="git-init-action-btn">Initialize Repository</button>
+          </div>
+
+          <!-- Active Git workspace UI -->
+          <div id="git-active-workspace-ui" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- Branch Selector & Sync -->
+            <div class="git-branch-bar">
+              <div class="git-branch-info">
+                <span>🌿</span>
+                <span id="git-current-branch-label">main</span>
+              </div>
+              <div class="git-sync-actions">
+                <button class="btn btn-xs btn-ghost" id="git-switch-branch-btn" title="Switch or Create Branch">Branches</button>
+                <button class="btn btn-xs btn-ghost" id="git-pull-btn" title="Pull Remote Changes">⬇ Pull</button>
+                <button class="btn btn-xs btn-primary" id="git-push-btn" title="Push Commits to Remote">⬆ Push</button>
+              </div>
+            </div>
+
+            <!-- Merge Conflict Alert -->
+            <div id="git-conflict-banner" class="git-conflict-banner" style="display: none;">
+              <div class="git-conflict-banner-title">
+                <span>⚠️</span> <span>Merge Conflict</span>
+              </div>
+              <p style="font-size:0.75rem; color:var(--color-text-primary); margin:0;">
+                One or more files have merge conflict markers. Resolve in editor, stage, and commit.
+              </p>
+            </div>
+
+            <!-- Commit Input Box -->
+            <div class="git-commit-box">
+              <textarea class="git-commit-input" id="git-commit-msg-input" placeholder="Commit message (Ctrl+Enter to commit)..."></textarea>
+              <div class="git-commit-toolbar">
+                <button class="btn btn-xs btn-ghost text-primary" id="git-ai-msg-btn" title="AI Generate Commit Message from Staged Diff">
+                  <span>✨ AI Msg</span>
+                </button>
+                <button class="btn btn-xs btn-primary" id="git-commit-btn">Commit</button>
+              </div>
+            </div>
+
+            <!-- Staged Changes Section -->
+            <div class="git-staged-section">
+              <div class="git-section-header">
+                <span>Staged Changes (<span id="git-staged-count">0</span>)</span>
+                <button class="btn btn-xs btn-ghost" id="git-unstage-all-btn" title="Unstage All">Unstage All</button>
+              </div>
+              <div class="git-file-list" id="git-staged-list">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Changes Section -->
+            <div class="git-changes-section">
+              <div class="git-section-header">
+                <span>Changes (<span id="git-changes-count">0</span>)</span>
+                <button class="btn btn-xs btn-ghost" id="git-stage-all-btn" title="Stage All">Stage All</button>
+              </div>
+              <div class="git-file-list" id="git-changes-list">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 1c. Left Panel: GitHub (Pull Requests & Remotes) -->
+      <aside class="github-sidebar" id="github-panel" style="display: none;">
+        <div class="git-panel-header">
+          <span>GitHub Integration</span>
+          <div class="flex items-center gap-1">
+            <button class="btn btn-icon btn-ghost btn-xs" id="github-refresh-btn" title="Refresh GitHub Data">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="git-panel-body">
+          <!-- Connection Box -->
+          <div id="github-disconnected-box" style="display:none; text-align:center; padding: 15px 5px; background:var(--color-bg-primary); border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+            <p style="font-size:0.8rem; color:var(--color-text-muted); margin-bottom:10px;">Connect your GitHub account to sync remotes, create repositories, and open pull requests.</p>
+            <button class="btn btn-sm btn-primary" id="github-connect-btn">Connect GitHub</button>
+          </div>
+
+          <div id="github-connected-box" style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; font-size:0.8rem; background:var(--color-bg-primary); padding:8px 10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+              <span>Connected as <strong id="github-username-label" style="color:var(--color-primary);">@user</strong></span>
+              <button class="btn btn-xs btn-ghost text-danger" id="github-disconnect-btn">Disconnect</button>
+            </div>
+
+            <!-- Remote info -->
+            <div style="background:var(--color-bg-primary); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+              <div style="font-size:0.75rem; font-weight:700; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:6px;">Remote Repository</div>
+              <div id="github-remote-info" style="font-size:0.8rem; word-break:break-all; color:var(--color-text-primary); margin-bottom:8px;">No remote configured</div>
+              <div class="flex items-center gap-2">
+                <button class="btn btn-xs btn-secondary" id="github-add-remote-btn">Configure Remote</button>
+                <button class="btn btn-xs btn-primary" id="github-new-pr-btn">+ Create PR</button>
+              </div>
+            </div>
+
+            <!-- Pull Requests -->
+            <div>
+              <div class="git-section-header">
+                <span>Pull Requests</span>
+                <div class="flex items-center gap-1">
+                  <button class="btn btn-xs btn-ghost active" id="pr-filter-open">Open</button>
+                  <button class="btn btn-xs btn-ghost" id="pr-filter-closed">Closed</button>
+                </div>
+              </div>
+              <div class="git-file-list" id="github-pr-list">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
         </div>
       </aside>
 
@@ -217,6 +364,9 @@
         <!-- Editor Statusbar -->
         <footer class="editor-statusbar">
           <div class="flex items-center gap-4">
+            <button class="btn btn-xs btn-ghost" id="status-git-branch-btn" style="font-size:0.75rem; padding: 2px 6px; display:none;" title="Switch Git Branch">
+              🌿 <span id="status-git-branch-name">main</span>
+            </button>
             <span id="status-current-file">/index.html</span>
             <span class="flex items-center gap-1">
               <span class="dirty-indicator" id="status-dirty-dot" style="display:none;"></span>
@@ -522,6 +672,128 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" id="version-modal-ok-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Switch Branch Modal -->
+  <div id="switch-branch-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🌿 Git Branches</h3>
+        <button class="modal-close" id="switch-branch-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs text-muted">Select branch to checkout</span>
+          <button class="btn btn-xs btn-primary" id="open-create-branch-btn">+ New Branch</button>
+        </div>
+        <div id="branches-list-container" class="git-branches-list" style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="switch-branch-cancel-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Branch Modal -->
+  <div id="create-branch-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🌿 Create New Branch</h3>
+        <button class="modal-close" id="create-branch-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group mb-3">
+          <label class="form-label" for="new-branch-name-input">Branch Name</label>
+          <input type="text" id="new-branch-name-input" class="form-control" placeholder="feature/my-awesome-feature" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="create-branch-cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="create-branch-submit-btn">Create & Checkout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Configure Remote Modal -->
+  <div id="add-remote-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🔗 Configure Remote Repository</h3>
+        <button class="modal-close" id="add-remote-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group mb-3">
+          <label class="form-label" for="remote-name-input">Remote Name</label>
+          <input type="text" id="remote-name-input" class="form-control" value="origin" required>
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label" for="remote-url-input">Repository URL</label>
+          <input type="url" id="remote-url-input" class="form-control" placeholder="https://github.com/username/repository.git" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="add-remote-cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="add-remote-submit-btn">Save Remote</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Pull Request Modal -->
+  <div id="create-pr-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">🔀 Create GitHub Pull Request</h3>
+        <button class="modal-close" id="create-pr-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group mb-3">
+          <label class="form-label" for="pr-title-input">PR Title</label>
+          <input type="text" id="pr-title-input" class="form-control" placeholder="Brief summary of changes" required>
+        </div>
+        <div class="form-group mb-3">
+          <label class="form-label" for="pr-body-input">Description / Body</label>
+          <textarea id="pr-body-input" class="form-control" rows="4" placeholder="Detailed explanation of feature or bug fix..."></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="form-group">
+            <label class="form-label" for="pr-head-select">Head (Source Branch)</label>
+            <select id="pr-head-select" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="pr-base-input">Base (Target Branch)</label>
+            <input type="text" id="pr-base-input" class="form-control" value="main">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="create-pr-cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="create-pr-submit-btn">Open Pull Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PR Details Modal -->
+  <div id="pr-details-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="pr-detail-title">Pull Request Details</h3>
+        <button class="modal-close" id="pr-detail-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="badge badge-success" id="pr-detail-state">OPEN</span>
+          <span class="text-xs text-muted" id="pr-detail-author">by @user</span>
+          <span class="text-xs text-muted" id="pr-detail-branches">feature -> main</span>
+        </div>
+        <div id="pr-detail-body" style="background:var(--color-bg-primary); padding:12px; border-radius:var(--radius-sm); font-size:0.85rem; line-height:1.5; max-height:260px; overflow-y:auto; border:1px solid var(--color-border); white-space:pre-wrap;" class="mb-3"></div>
+      </div>
+      <div class="modal-footer flex items-center justify-between">
+        <a id="pr-detail-github-link" href="#" target="_blank" class="btn btn-sm btn-outline">View on GitHub &rarr;</a>
+        <button class="btn btn-secondary" id="pr-detail-ok-btn">Close</button>
       </div>
     </div>
   </div>

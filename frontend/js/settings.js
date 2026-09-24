@@ -49,8 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Fetch and display active AI Providers
+  // Fetch and display active AI Providers & GitHub status
   loadAIProviders();
+  loadGitHubStatus();
 });
 
 async function loadAIProviders() {
@@ -93,6 +94,62 @@ async function loadAIProviders() {
         <span class="badge badge-neutral">Offline</span>
       </div>
     `;
+  }
+}
+
+async function loadGitHubStatus() {
+  const labelEl = document.getElementById('github-account-status-label');
+  const descEl = document.getElementById('github-account-status-desc');
+  const actionBox = document.getElementById('github-account-action-box');
+
+  if (!labelEl || !actionBox) return;
+
+  try {
+    const { gitHubClient } = await import('./github.js');
+    const res = await gitHubClient.getStatus();
+    const status = res.data;
+
+    if (status.connected) {
+      if (labelEl) labelEl.textContent = `Connected as @${status.username}`;
+      if (descEl) descEl.textContent = `GitHub account linked. Access token encrypted with AES-256-GCM.`;
+      actionBox.innerHTML = `
+        <div class="flex items-center gap-2">
+          <span class="badge badge-success">Connected</span>
+          <button class="btn btn-sm btn-ghost text-danger" id="settings-github-disconnect-btn">Disconnect</button>
+        </div>
+      `;
+
+      document.getElementById('settings-github-disconnect-btn')?.addEventListener('click', async () => {
+        try {
+          await gitHubClient.disconnect();
+          showToast('Disconnected', 'GitHub account unlinked successfully.', 'info');
+          loadGitHubStatus();
+        } catch (err) {
+          showToast('Disconnect Failed', err.message, 'danger');
+        }
+      });
+    } else {
+      if (labelEl) labelEl.textContent = 'Not Connected';
+      if (descEl) descEl.textContent = 'Link your GitHub account to enable repository clone, push, and pull request features.';
+      actionBox.innerHTML = `
+        <button class="btn btn-sm btn-primary" id="settings-github-connect-btn">Connect GitHub Account</button>
+      `;
+
+      document.getElementById('settings-github-connect-btn')?.addEventListener('click', async () => {
+        try {
+          const oauthRes = await gitHubClient.startOAuth();
+          if (oauthRes && oauthRes.data && oauthRes.data.authorizationUrl) {
+            window.location.href = oauthRes.data.authorizationUrl;
+          }
+        } catch (err) {
+          showToast('OAuth Error', err.message, 'danger');
+        }
+      });
+    }
+  } catch (err) {
+    if (labelEl) labelEl.textContent = 'GitHub Connection Status Unavailable';
+    if (descEl) descEl.textContent = 'Sign in to manage GitHub OAuth configurations.';
+    if (actionBox) actionBox.innerHTML = '<span class="badge badge-neutral">Offline</span>';
   }
 }
 

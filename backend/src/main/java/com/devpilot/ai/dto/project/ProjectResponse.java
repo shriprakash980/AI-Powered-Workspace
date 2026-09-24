@@ -17,6 +17,10 @@ public class ProjectResponse {
     private UUID ownerId;
     private String repositoryUrl;
     private String deploymentUrl;
+    private boolean gitEnabled;
+    private String defaultBranch;
+    private String gitProvider;
+    private Instant lastFetchedAt;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -24,7 +28,8 @@ public class ProjectResponse {
 
     public ProjectResponse(UUID id, String name, String description, ProjectTemplate template, String language,
                            String framework, ProjectStatus status, UUID ownerId, String repositoryUrl,
-                           String deploymentUrl, Instant createdAt, Instant updatedAt) {
+                           String deploymentUrl, boolean gitEnabled, String defaultBranch, String gitProvider,
+                           Instant lastFetchedAt, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -35,6 +40,10 @@ public class ProjectResponse {
         this.ownerId = ownerId;
         this.repositoryUrl = repositoryUrl;
         this.deploymentUrl = deploymentUrl;
+        this.gitEnabled = gitEnabled;
+        this.defaultBranch = defaultBranch;
+        this.gitProvider = gitProvider;
+        this.lastFetchedAt = lastFetchedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -73,6 +82,18 @@ public class ProjectResponse {
     public String getDeploymentUrl() { return deploymentUrl; }
     public void setDeploymentUrl(String deploymentUrl) { this.deploymentUrl = deploymentUrl; }
 
+    public boolean isGitEnabled() { return gitEnabled; }
+    public void setGitEnabled(boolean gitEnabled) { this.gitEnabled = gitEnabled; }
+
+    public String getDefaultBranch() { return defaultBranch; }
+    public void setDefaultBranch(String defaultBranch) { this.defaultBranch = defaultBranch; }
+
+    public String getGitProvider() { return gitProvider; }
+    public void setGitProvider(String gitProvider) { this.gitProvider = gitProvider; }
+
+    public Instant getLastFetchedAt() { return lastFetchedAt; }
+    public void setLastFetchedAt(Instant lastFetchedAt) { this.lastFetchedAt = lastFetchedAt; }
+
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 
@@ -90,6 +111,10 @@ public class ProjectResponse {
         private UUID ownerId;
         private String repositoryUrl;
         private String deploymentUrl;
+        private boolean gitEnabled;
+        private String defaultBranch;
+        private String gitProvider;
+        private Instant lastFetchedAt;
         private Instant createdAt;
         private Instant updatedAt;
 
@@ -103,11 +128,16 @@ public class ProjectResponse {
         public Builder ownerId(UUID ownerId) { this.ownerId = ownerId; return this; }
         public Builder repositoryUrl(String repositoryUrl) { this.repositoryUrl = repositoryUrl; return this; }
         public Builder deploymentUrl(String deploymentUrl) { this.deploymentUrl = deploymentUrl; return this; }
+        public Builder gitEnabled(boolean gitEnabled) { this.gitEnabled = gitEnabled; return this; }
+        public Builder defaultBranch(String defaultBranch) { this.defaultBranch = defaultBranch; return this; }
+        public Builder gitProvider(String gitProvider) { this.gitProvider = gitProvider; return this; }
+        public Builder lastFetchedAt(Instant lastFetchedAt) { this.lastFetchedAt = lastFetchedAt; return this; }
         public Builder createdAt(Instant createdAt) { this.createdAt = createdAt; return this; }
         public Builder updatedAt(Instant updatedAt) { this.updatedAt = updatedAt; return this; }
 
         public ProjectResponse build() {
-            return new ProjectResponse(id, name, description, template, language, framework, status, ownerId, repositoryUrl, deploymentUrl, createdAt, updatedAt);
+            return new ProjectResponse(id, name, description, template, language, framework, status, ownerId, repositoryUrl,
+                    deploymentUrl, gitEnabled, defaultBranch, gitProvider, lastFetchedAt, createdAt, updatedAt);
         }
     }
 }

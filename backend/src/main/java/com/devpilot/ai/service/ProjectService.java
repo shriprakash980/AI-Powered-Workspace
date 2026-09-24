@@ -321,6 +321,10 @@ public class ProjectService {
                 .ownerId(project.getOwnerId())
                 .repositoryUrl(project.getRepositoryUrl())
                 .deploymentUrl(project.getDeploymentUrl())
+                .gitEnabled(project.isGitEnabled())
+                .defaultBranch(project.getDefaultBranch())
+                .gitProvider(project.getGitProvider())
+                .lastFetchedAt(project.getLastFetchedAt())
                 .createdAt(project.getCreatedAt())
                 .updatedAt(project.getUpdatedAt())
                 .build();
