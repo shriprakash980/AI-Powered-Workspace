@@ -35,6 +35,8 @@ import {
 import { initAI, updateContextBadge } from './ai.js';
 import { gitClient } from './git.js';
 import { gitHubClient } from './github.js';
+import { buildClient } from './build.js';
+import { deploymentClient } from './deployment.js';
 
 // Centralized Workspace State
 const workspaceState = {
@@ -55,7 +57,8 @@ const workspaceState = {
   closingTabId: null,
   gitStatus: null,
   gitStatusMap: new Map(),
-  githubRemoteOwnerRepo: null
+  githubRemoteOwnerRepo: null,
+  activeDeployment: null
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -71,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAIAssistant();
   initSourceControl();
   initGitHubIntegration();
+  initBuildAndDeploy();
   initTerminal();
   initPreview();
   initGlobalShortcuts();
@@ -1428,14 +1432,16 @@ function initSourceControl() {
   const actExplorer = document.getElementById('act-btn-explorer');
   const actGit = document.getElementById('act-btn-git');
   const actGitHub = document.getElementById('act-btn-github');
+  const actBuildDeploy = document.getElementById('act-btn-build-deploy');
 
   const panelExplorer = document.getElementById('file-explorer-panel');
   const panelGit = document.getElementById('source-control-panel');
   const panelGitHub = document.getElementById('github-panel');
+  const panelBuildDeploy = document.getElementById('build-deploy-panel');
 
   function switchSidebarPanel(targetBtn, targetPanel) {
-    [actExplorer, actGit, actGitHub].forEach(b => b?.classList.remove('active'));
-    [panelExplorer, panelGit, panelGitHub].forEach(p => { if (p) p.style.display = 'none'; });
+    [actExplorer, actGit, actGitHub, actBuildDeploy].forEach(b => b?.classList.remove('active'));
+    [panelExplorer, panelGit, panelGitHub, panelBuildDeploy].forEach(p => { if (p) p.style.display = 'none'; });
 
     targetBtn?.classList.add('active');
     if (targetPanel) targetPanel.style.display = 'flex';
@@ -1445,6 +1451,7 @@ function initSourceControl() {
   if (actExplorer) actExplorer.addEventListener('click', () => switchSidebarPanel(actExplorer, panelExplorer));
   if (actGit) actGit.addEventListener('click', () => { switchSidebarPanel(actGit, panelGit); loadGitStatus(); });
   if (actGitHub) actGitHub.addEventListener('click', () => { switchSidebarPanel(actGitHub, panelGitHub); loadGitHubStatus(); });
+  if (actBuildDeploy) actBuildDeploy.addEventListener('click', () => { switchSidebarPanel(actBuildDeploy, panelBuildDeploy); loadBuildAndDeployStatus(); });
 
   document.getElementById('git-refresh-btn')?.addEventListener('click', () => loadGitStatus());
 
@@ -2054,5 +2061,296 @@ function openPrDetailsModal(pr) {
   if (linkEl) linkEl.href = pr.htmlUrl || '#';
 
   openModal('pr-details-modal');
+}
+
+/**
+ * 21. Build System & Deployment Platform Integration (Phase 12)
+ */
+function initBuildAndDeploy() {
+  document.getElementById('build-refresh-btn')?.addEventListener('click', () => loadBuildAndDeployStatus());
+
+  document.getElementById('trigger-build-btn')?.addEventListener('click', () => triggerBuildRun('BUILD'));
+  document.getElementById('trigger-test-btn')?.addEventListener('click', () => triggerBuildRun('TEST'));
+  document.getElementById('trigger-build-test-btn')?.addEventListener('click', () => triggerBuildRun('BUILD_AND_TEST'));
+
+  document.getElementById('trigger-deploy-btn')?.addEventListener('click', () => triggerDeploymentRun());
+  document.getElementById('trigger-stop-deploy-btn')?.addEventListener('click', () => stopDeploymentRun());
+  document.getElementById('trigger-restart-deploy-btn')?.addEventListener('click', () => restartDeploymentRun());
+  document.getElementById('trigger-rollback-deploy-btn')?.addEventListener('click', () => rollbackDeploymentRun());
+
+  document.getElementById('open-env-vars-btn')?.addEventListener('click', () => {
+    openModal('env-vars-modal');
+    loadEnvironmentVariables();
+  });
+  document.getElementById('env-vars-close-btn')?.addEventListener('click', () => closeModal('env-vars-modal'));
+  document.getElementById('env-vars-ok-btn')?.addEventListener('click', () => closeModal('env-vars-modal'));
+
+  document.getElementById('save-env-var-btn')?.addEventListener('click', async () => {
+    const nameInput = document.getElementById('new-env-var-name');
+    const valInput = document.getElementById('new-env-var-val');
+    const envSelect = document.getElementById('new-env-var-env');
+
+    const name = nameInput?.value.trim();
+    const value = valInput?.value.trim();
+    const environment = envSelect?.value || 'DEVELOPMENT';
+
+    if (!name || !value) {
+      showToast('Validation Error', 'Key Name and Secret Value are required.', 'warning');
+      return;
+    }
+
+    try {
+      await deploymentClient.saveEnvironmentVariable(workspaceState.projectId, name, value, environment);
+      if (nameInput) nameInput.value = '';
+      if (valInput) valInput.value = '';
+      showToast('Variable Saved', `Saved environment variable '${name}'`, 'success');
+      loadEnvironmentVariables();
+    } catch (err) {
+      showToast('Save Error', err.message || 'Failed to save environment variable', 'danger');
+    }
+  });
+}
+
+async function loadBuildAndDeployStatus() {
+  if (!workspaceState.projectId) return;
+
+  // 1. Detect project type
+  try {
+    const detectRes = await buildClient.detectProject(workspaceState.projectId);
+    const detection = detectRes.data;
+    const typeLabel = document.getElementById('build-detected-type-label');
+    const cmdLabel = document.getElementById('build-suggested-cmd-label');
+
+    if (detection) {
+      if (typeLabel) typeLabel.textContent = `${detection.detectedType || 'UNKNOWN'} (${detection.confidenceScore || 0}% match)`;
+      if (cmdLabel) cmdLabel.textContent = `Build: ${detection.suggestedBuildCommand || '--'} | Test: ${detection.suggestedTestCommand || '--'}`;
+    }
+  } catch (err) {
+    console.warn('[Build Detection Error]', err);
+  }
+
+  // 2. Fetch recent builds history
+  try {
+    const buildsRes = await buildClient.getBuilds(workspaceState.projectId);
+    const builds = buildsRes.data || [];
+    renderBuildHistory(builds);
+  } catch (err) {
+    console.warn('[Build History Error]', err);
+  }
+
+  // 3. Fetch deployment status
+  try {
+    const deployRes = await deploymentClient.getDeployments(workspaceState.projectId);
+    const deployments = deployRes.data || [];
+    renderDeploymentStatus(deployments);
+  } catch (err) {
+    console.warn('[Deployment Status Error]', err);
+  }
+}
+
+async function triggerBuildRun(mode) {
+  if (!workspaceState.projectId) return;
+  try {
+    showToast('Build Triggered', `Executing project ${mode}...`, 'info');
+    logOutput(`[Build] Triggering ${mode} task...`);
+    const res = await buildClient.triggerBuild(workspaceState.projectId, mode);
+    showToast('Build Completed', `Build #${res.data?.id || ''} finished with status: ${res.data?.status || 'UNKNOWN'}`, res.data?.status === 'SUCCESS' ? 'success' : 'danger');
+    logOutput(`[Build Status] Build #${res.data?.id} -> ${res.data?.status}`);
+    loadBuildAndDeployStatus();
+  } catch (err) {
+    showToast('Build Error', err.message || 'Failed to trigger build', 'danger');
+    logOutput(`[Build Error] ${err.message}`);
+  }
+}
+
+async function triggerDeploymentRun() {
+  if (!workspaceState.projectId) return;
+  try {
+    showToast('Deploying Application', 'Building container and starting local Docker deployment...', 'info');
+    logOutput('[Deployment] Starting deployment process...');
+    const res = await deploymentClient.createDeployment(workspaceState.projectId, 'DEVELOPMENT');
+    const dep = res.data;
+    if (dep && dep.status === 'RUNNING') {
+      showToast('Deployment Live', `App running at ${dep.deploymentUrl}`, 'success');
+      logOutput(`[Deployment Live] URL: ${dep.deploymentUrl}`);
+    } else {
+      showToast('Deployment Status', `Deployment ended with status: ${dep?.status || 'UNKNOWN'}`, dep?.status === 'STOPPED' ? 'warning' : 'danger');
+    }
+    loadBuildAndDeployStatus();
+  } catch (err) {
+    showToast('Deployment Failed', err.message || 'Error deploying project', 'danger');
+    logOutput(`[Deployment Error] ${err.message}`);
+  }
+}
+
+async function stopDeploymentRun() {
+  if (!workspaceState.projectId || !workspaceState.activeDeployment) {
+    showToast('No Active Deployment', 'No running deployment to stop.', 'warning');
+    return;
+  }
+  try {
+    showToast('Stopping Deployment', 'Terminating container execution...', 'info');
+    await deploymentClient.stopDeployment(workspaceState.projectId, workspaceState.activeDeployment.id);
+    showToast('Deployment Stopped', 'Application container stopped safely.', 'success');
+    logOutput('[Deployment] Container stopped.');
+    loadBuildAndDeployStatus();
+  } catch (err) {
+    showToast('Stop Failed', err.message, 'danger');
+  }
+}
+
+async function restartDeploymentRun() {
+  if (!workspaceState.projectId || !workspaceState.activeDeployment) {
+    showToast('No Active Deployment', 'No deployment found to restart.', 'warning');
+    return;
+  }
+  try {
+    showToast('Restarting Deployment', 'Re-building and restarting container...', 'info');
+    const res = await deploymentClient.restartDeployment(workspaceState.projectId, workspaceState.activeDeployment.id);
+    showToast('Deployment Restarted', `App running at ${res.data?.deploymentUrl || ''}`, 'success');
+    logOutput(`[Deployment Restarted] URL: ${res.data?.deploymentUrl}`);
+    loadBuildAndDeployStatus();
+  } catch (err) {
+    showToast('Restart Failed', err.message, 'danger');
+  }
+}
+
+async function rollbackDeploymentRun() {
+  if (!workspaceState.projectId || !workspaceState.activeDeployment) {
+    showToast('No Active Deployment', 'No deployment found to rollback.', 'warning');
+    return;
+  }
+  try {
+    showToast('Rolling Back', 'Restoring previous stable deployment artifact...', 'info');
+    const res = await deploymentClient.rollbackDeployment(workspaceState.projectId, workspaceState.activeDeployment.id);
+    showToast('Rollback Complete', `Rolled back to deployment #${res.data?.id || ''}`, 'success');
+    logOutput(`[Deployment Rollback] Rolled back to #${res.data?.id}`);
+    loadBuildAndDeployStatus();
+  } catch (err) {
+    showToast('Rollback Failed', err.message, 'danger');
+  }
+}
+
+async function loadEnvironmentVariables() {
+  const container = document.getElementById('env-vars-list-container');
+  if (!container || !workspaceState.projectId) return;
+
+  container.innerHTML = '<div style="font-size:0.75rem; color:var(--color-text-muted); padding:6px 0;">Loading variables...</div>';
+
+  try {
+    const res = await deploymentClient.getEnvironmentVariables(workspaceState.projectId);
+    const vars = res.data || [];
+
+    if (vars.length === 0) {
+      container.innerHTML = '<div style="font-size:0.75rem; color:var(--color-text-muted); padding:6px 0;">No environment variables configured.</div>';
+      return;
+    }
+
+    container.innerHTML = vars.map(v => `
+      <div style="display:flex; align-items:center; justify-content:space-between; padding:6px 8px; background:var(--color-bg-primary); border-radius:var(--radius-sm); border:1px solid var(--color-border); font-size:0.8rem;">
+        <div style="display:flex; flex-direction:column; gap:2px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <strong style="color:var(--color-primary);">${escapeHtml(v.name)}</strong>
+            <span class="badge badge-neutral" style="font-size:0.65rem;">${escapeHtml(v.environment)}</span>
+          </div>
+          <span style="font-size:0.72rem; color:var(--color-text-muted); font-family:monospace;">${escapeHtml(v.maskedValue || '••••••••')}</span>
+        </div>
+        <button class="btn btn-xs btn-ghost text-danger" data-env-id="${v.id}" title="Delete Variable">&times;</button>
+      </div>
+    `).join('');
+
+    container.querySelectorAll('button[data-env-id]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const envId = btn.dataset.envId;
+        try {
+          await deploymentClient.deleteEnvironmentVariable(workspaceState.projectId, envId);
+          showToast('Variable Deleted', 'Environment variable removed.', 'success');
+          loadEnvironmentVariables();
+        } catch (err) {
+          showToast('Delete Failed', err.message, 'danger');
+        }
+      });
+    });
+  } catch (err) {
+    if (container) container.innerHTML = `<div style="font-size:0.75rem; color:var(--color-danger); padding:6px 0;">Error loading variables: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderBuildHistory(builds) {
+  const container = document.getElementById('build-history-list');
+  if (!container) return;
+
+  if (!builds || builds.length === 0) {
+    container.innerHTML = '<div style="font-size:0.75rem; color:var(--color-text-muted); padding:6px 0;">No build history available.</div>';
+    return;
+  }
+
+  container.innerHTML = builds.map(b => {
+    const badgeClass = b.status === 'SUCCESS' ? 'badge-success' : (b.status === 'FAILED' ? 'badge-danger' : 'badge-neutral');
+    const duration = b.durationSeconds ? `${b.durationSeconds}s` : '--';
+    return `
+      <div class="git-file-item" style="flex-direction:column; align-items:flex-start; gap:4px; padding:6px 8px;">
+        <div class="flex items-center justify-between" style="width:100%;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <strong style="font-size:0.8rem;">Build #${b.id}</strong>
+            <span class="badge ${badgeClass}" style="font-size:0.65rem;">${b.status}</span>
+          </div>
+          <span style="font-size:0.7rem; color:var(--color-text-muted);">${b.mode} (${duration})</span>
+        </div>
+        ${b.status === 'FAILED' ? `
+          <button class="btn btn-xs btn-outline text-warning" data-build-diagnose="${b.id}" style="font-size:0.68rem; padding:1px 6px;">✨ AI Diagnose</button>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('button[data-build-diagnose]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const buildId = btn.dataset.buildDiagnose;
+      try {
+        showToast('AI Diagnosing', 'Analyzing build logs and failure stack trace...', 'info');
+        const diagRes = await buildClient.diagnoseBuild(workspaceState.projectId, buildId);
+        const diag = diagRes.data;
+        if (diag) {
+          alert(`✨ AI BUILD DIAGNOSIS\n\nRoot Cause:\n${diag.rootCause}\n\nSuggested Fix:\n${diag.suggestedFix}`);
+        }
+      } catch (err) {
+        showToast('Diagnosis Error', err.message, 'danger');
+      }
+    });
+  });
+}
+
+function renderDeploymentStatus(deployments) {
+  const badgeEl = document.getElementById('deploy-status-badge');
+  const urlBox = document.getElementById('deploy-url-box');
+  const urlLink = document.getElementById('deploy-url-link');
+
+  const active = deployments.find(d => d.status === 'RUNNING') || deployments[0];
+  workspaceState.activeDeployment = active;
+
+  if (!active) {
+    if (badgeEl) { badgeEl.textContent = 'NOT DEPLOYED'; badgeEl.className = 'badge badge-neutral'; }
+    if (urlBox) urlBox.style.display = 'none';
+    return;
+  }
+
+  if (active.status === 'RUNNING') {
+    if (badgeEl) { badgeEl.textContent = 'RUNNING'; badgeEl.className = 'badge badge-success'; }
+    if (urlBox) urlBox.style.display = 'block';
+    if (urlLink) {
+      urlLink.href = active.deploymentUrl || '#';
+      urlLink.textContent = active.deploymentUrl || 'http://localhost:...';
+    }
+  } else if (active.status === 'STOPPED') {
+    if (badgeEl) { badgeEl.textContent = 'STOPPED'; badgeEl.className = 'badge badge-neutral'; }
+    if (urlBox) urlBox.style.display = 'none';
+  } else if (active.status === 'FAILED') {
+    if (badgeEl) { badgeEl.textContent = 'FAILED'; badgeEl.className = 'badge badge-danger'; }
+    if (urlBox) urlBox.style.display = 'none';
+  } else {
+    if (badgeEl) { badgeEl.textContent = active.status; badgeEl.className = 'badge badge-neutral'; }
+    if (urlBox) urlBox.style.display = 'none';
+  }
 }
 

@@ -39,6 +39,8 @@ const jsFiles = [
   'api.js',
   'git.js',
   'github.js',
+  'build.js',
+  'deployment.js',
   'components.js',
   'navigation.js',
   'landing.js',

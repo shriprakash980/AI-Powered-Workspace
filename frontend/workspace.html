@@ -97,6 +97,9 @@
         <button class="activity-bar-btn" id="act-btn-github" title="GitHub (Pull Requests & Remotes)" data-panel="github-panel">
           <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
         </button>
+        <button class="activity-bar-btn" id="act-btn-build-deploy" title="Build & Deploy Platform" data-panel="build-deploy-panel">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </button>
       </nav>
 
       <!-- 1. Left Panel: File Explorer -->
@@ -249,6 +252,72 @@
               <div class="git-file-list" id="github-pr-list">
                 <!-- Populated dynamically -->
               </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 1d. Left Panel: Build & Deploy Engine -->
+      <aside class="build-deploy-sidebar" id="build-deploy-panel" style="display: none;">
+        <div class="git-panel-header">
+          <span>Build & Deployment</span>
+          <div class="flex items-center gap-1">
+            <button class="btn btn-icon btn-ghost btn-xs" id="build-refresh-btn" title="Refresh Status">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="git-panel-body" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Project Type Detection Box -->
+          <div style="background:var(--color-bg-primary); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border);">
+            <div style="font-size:0.75rem; font-weight:700; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:4px;">Detected Project Type</div>
+            <div id="build-detected-type-label" style="font-size:0.85rem; font-weight:600; color:var(--color-primary); margin-bottom:6px;">Detecting...</div>
+            <div style="font-size:0.72rem; color:var(--color-text-muted);" id="build-suggested-cmd-label">Command: --</div>
+          </div>
+
+          <!-- Build Actions Section -->
+          <div style="background:var(--color-bg-primary); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border); display:flex; flex-direction:column; gap:8px;">
+            <div style="font-size:0.75rem; font-weight:700; color:var(--color-text-muted); text-transform:uppercase;">Build & Test Actions</div>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="btn btn-xs btn-primary" id="trigger-build-btn">🔨 Build</button>
+              <button class="btn btn-xs btn-secondary" id="trigger-test-btn">🧪 Test</button>
+            </div>
+            <button class="btn btn-xs btn-outline" id="trigger-build-test-btn">📦 Build & Test</button>
+          </div>
+
+          <!-- Active Deployment Card -->
+          <div style="background:var(--color-bg-primary); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border); display:flex; flex-direction:column; gap:8px;">
+            <div class="flex items-center justify-between">
+              <div style="font-size:0.75rem; font-weight:700; color:var(--color-text-muted); text-transform:uppercase;">Deployment Status</div>
+              <span class="badge badge-neutral" id="deploy-status-badge">NOT DEPLOYED</span>
+            </div>
+            <div id="deploy-url-box" style="font-size:0.8rem; word-break:break-all; display:none;">
+              <a id="deploy-url-link" href="#" target="_blank" style="color:var(--color-primary); font-weight:600;">http://localhost:...</a>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <button class="btn btn-xs btn-primary" id="trigger-deploy-btn">🚀 Deploy</button>
+              <button class="btn btn-xs btn-ghost text-danger" id="trigger-stop-deploy-btn">🛑 Stop</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="btn btn-xs btn-secondary" id="trigger-restart-deploy-btn" style="flex:1;">🔄 Restart</button>
+              <button class="btn btn-xs btn-secondary" id="trigger-rollback-deploy-btn" style="flex:1;">⏮ Rollback</button>
+            </div>
+          </div>
+
+          <!-- Environment Variables Dialog Launcher -->
+          <div style="background:var(--color-bg-primary); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border); display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:0.8rem; color:var(--color-text-primary);">Environment Variables</span>
+            <button class="btn btn-xs btn-outline" id="open-env-vars-btn">⚙️ Manage</button>
+          </div>
+
+          <!-- Recent Build History List -->
+          <div>
+            <div class="git-section-header">
+              <span>Build History</span>
+            </div>
+            <div class="git-file-list" id="build-history-list">
+              <!-- Rendered dynamically -->
             </div>
           </div>
         </div>
@@ -794,6 +863,43 @@
       <div class="modal-footer flex items-center justify-between">
         <a id="pr-detail-github-link" href="#" target="_blank" class="btn btn-sm btn-outline">View on GitHub &rarr;</a>
         <button class="btn btn-secondary" id="pr-detail-ok-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Environment Variables Modal -->
+  <div id="env-vars-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 class="modal-title">⚙️ Project Environment Variables</h3>
+        <button class="modal-close" id="env-vars-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- Add Variable Form -->
+        <div style="background:var(--color-bg-primary); padding:10px; border-radius:var(--radius-sm); border:1px solid var(--color-border); margin-bottom:12px;">
+          <div style="font-size:0.75rem; font-weight:700; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:6px;">Add New Variable</div>
+          <div class="grid grid-cols-2 gap-2 mb-2">
+            <input type="text" id="new-env-var-name" class="form-control" placeholder="KEY_NAME (e.g. PORT)" required>
+            <input type="password" id="new-env-var-val" class="form-control" placeholder="Secret Value" required>
+          </div>
+          <div class="flex items-center justify-between">
+            <select id="new-env-var-env" class="form-control" style="width: auto; padding: 2px 6px; font-size: 0.75rem;">
+              <option value="DEVELOPMENT" selected>DEVELOPMENT</option>
+              <option value="STAGING">STAGING</option>
+              <option value="PRODUCTION">PRODUCTION</option>
+            </select>
+            <button class="btn btn-xs btn-primary" id="save-env-var-btn">+ Add Variable</button>
+          </div>
+        </div>
+
+        <!-- Variable List -->
+        <div style="font-size:0.75rem; font-weight:700; color:var(--color-text-muted); text-transform:uppercase; margin-bottom:6px;">Configured Variables</div>
+        <div id="env-vars-list-container" style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="env-vars-ok-btn">Close</button>
       </div>
     </div>
   </div>

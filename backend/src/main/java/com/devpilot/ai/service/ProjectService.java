@@ -286,6 +286,20 @@ public class ProjectService {
         }
     }
 
+    public Project getProjectEntityByIdAndUser(UUID projectId, UUID userId) {
+        Project project = findActiveProjectOrThrow(projectId);
+        verifyProjectOwnership(projectId, userId);
+        return project;
+    }
+
+    public void verifyProjectOwnership(UUID projectId, UUID userId) {
+        Project project = findActiveProjectOrThrow(projectId);
+        if (project.getOwnerId() != null && userId != null && !project.getOwnerId().equals(userId)) {
+            log.warn("Access denied: User ID {} does not own project ID {}", userId, projectId);
+            throw new ForbiddenException("You do not have permission to access this project");
+        }
+    }
+
     private Project findActiveProjectOrThrow(UUID id) {
         return projectRepository.findByIdAndStatusNot(id, ProjectStatus.DELETED)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", id));
