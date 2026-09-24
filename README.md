@@ -13,7 +13,7 @@
 
 ## 🌟 Core Highlights
 - **Vanilla Web Frontend:** Built purely with standards-compliant HTML5, modern CSS3 (Custom Properties & Flex/Grid), and modular ES6+ JavaScript. Absolutely no frontend framework bloat (no React, Angular, Vue, Tailwind, or Bootstrap).
-- **Interactive Cloud Workspace:** Integrated file explorer tree, dynamic tab buffer, in-browser code editor, auto-saving, keyboard shortcuts (`Ctrl+S`), line gutter, and live preview.
+- **Monaco Code Editor & IDE:** Full-fledged Monaco Editor integration, multi-model buffer, syntax highlighting for 14+ languages, dirty change indicators (`●`), `Ctrl+S` instant save, Command Palette (`Ctrl+Shift+P`), Quick Open (`Ctrl+P`), custom context menus, and resizable layout splitters.
 - **Virtual Filesystem Backend:** PostgreSQL-backed hierarchical files and folders with path traversal security, cycle-prevention on folder moves, cascading path updates, and 1MB size limit.
 - **Enterprise Spring Boot Backend:** Java 21, Spring Boot 3.3.4, Spring Security 6 with stateless JWT authentication, and Swagger/OpenAPI documentation.
 - **Robust Database Architecture:** PostgreSQL with Flyway version-controlled migrations (`V1` to `V5`), UUID primary keys, 3NF normalization, foreign key constraints, and Hibernate `validate` mode.
@@ -27,24 +27,26 @@
 AI-Powered-Workspace/
 ├── frontend/             # Vanilla HTML5, CSS3, ES6+ JS
 │   ├── css/              # 14 modular stylesheets (variables, reset, components, etc.)
-│   ├── js/               # 13 modular ES6 controllers and services
+│   ├── js/               # 14 modular ES6 controllers and services (editor.js, workspace.js, etc.)
 │   └── *.html            # 8 application views (landing, auth, dashboard, workspace)
 ├── backend/              # Spring Boot 3 (Java 21) REST API
 │   ├── src/main/java/    # Clean Controller-Service-Repository architecture
 │   │   ├── config/       # Swagger/OpenAPI with BearerAuth, CORS
-│   │   ├── controller/   # REST Controllers (Auth, Admin, Projects, Health)
+│   │   ├── controller/   # REST Controllers (Auth, Projects, Files, Workspace, Health)
 │   │   ├── dto/          # Data Transfer Objects with Bean Validation
-│   │   ├── entity/       # JPA Entities (User, Role, Project, ProjectFile, RefreshToken)
+│   │   ├── entity/       # JPA Entities (User, Role, Project, ProjectFile, RefreshToken, ActivityLog)
 │   │   ├── repository/   # Spring Data JPA Repositories
 │   │   ├── security/     # JwtService, JwtFilter, UserPrincipal, UserDetailsService
-│   │   └── service/      # Business Services (Auth, RefreshToken, Project)
+│   │   └── service/      # Business Services (Auth, RefreshToken, Project, ProjectFile, Workspace)
 │   ├── src/main/resources/
 │   │   ├── application.yml
 │   │   └── db/migration/ # Flyway SQL migrations (V1 to V5)
-│   └── src/test/         # 48 Automated unit & end-to-end integration tests
+│   └── src/test/         # 67 Automated unit & end-to-end integration tests
 ├── database/             # Mirrored Flyway SQL migrations
 ├── infrastructure/       # Dockerfiles, Nginx configs, and CI/CD templates
-├── docs/                 # Architectural, database, security, API, and viva documentation
+├── docs/                 # Architectural, database, security, workspace, editor, and viva documentation
+│   ├── editor.md         # Monaco Editor, tabs, shortcuts, and IDE architecture
+│   └── workspace.md      # Virtual filesystem & workspace APIs
 ├── scripts/              # Automated verification utilities
 ├── docker-compose.yml    # Full-stack container orchestration
 ├── .env.example          # Environment variables template

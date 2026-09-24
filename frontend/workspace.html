@@ -24,57 +24,71 @@
           <div class="navbar-brand-icon">
             <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
           </div>
-          <span style="font-size: var(--font-size-sm);">DevPilot</span>
+          <span style="font-size: var(--font-size-sm); font-weight: var(--font-weight-bold);">DevPilot</span>
         </a>
 
         <div class="project-breadcrumb">
           <span>/</span>
-          <button class="btn btn-sm btn-ghost" id="toggle-explorer-btn" title="Toggle File Tree">
+          <button class="btn btn-sm btn-ghost" id="toggle-explorer-btn" title="Toggle File Tree (Ctrl+B)">
             <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           </button>
-          <span class="project-title" id="workspace-project-name">Loading...</span>
+          <span class="project-title" id="workspace-project-name">Loading workspace...</span>
           <span class="badge badge-success" id="workspace-project-status">Active</span>
         </div>
       </div>
 
       <div class="workspace-nav-center workspace-actions">
+        <!-- Quick Open & Command Palette Triggers -->
+        <button class="btn btn-sm btn-ghost" id="workspace-quick-open-btn" title="Quick Open (Ctrl+P)">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="btn-text-responsive">Search</span>
+          <kbd class="kbd-hint">Ctrl+P</kbd>
+        </button>
+
+        <button class="btn btn-sm btn-ghost" id="workspace-command-palette-btn" title="Command Palette (Ctrl+Shift+P)">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          <span class="btn-text-responsive">Commands</span>
+          <kbd class="kbd-hint">Ctrl+Shift+P</kbd>
+        </button>
+
+        <!-- Save Button -->
         <button class="btn btn-sm btn-secondary" id="workspace-save-btn" title="Save Active File (Ctrl+S)">
           <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           <span>Save</span>
         </button>
-        <button class="btn btn-sm btn-primary" id="workspace-run-btn" title="Run Sandboxed Project (Ctrl+R)">
+
+        <button class="btn btn-sm btn-primary" id="workspace-run-btn" title="Run Sandboxed Project">
           <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           <span>Run</span>
-        </button>
-        <button class="btn btn-sm btn-secondary" onclick="alert('Git synchronizer available in Phase 12.');" title="Source Control">
-          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 012 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
-          <span>Git</span>
-        </button>
-        <button class="btn btn-sm btn-secondary" onclick="alert('Deployments console available in Phase 13.');" title="Deploy Container">
-          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          <span>Deploy</span>
         </button>
       </div>
 
       <div class="workspace-nav-right">
+        <!-- Editor Preferences Dialog Trigger -->
+        <button class="btn btn-icon btn-ghost" id="workspace-editor-settings-btn" title="Editor Preferences">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+
         <button class="btn btn-icon btn-ghost" id="toggle-ai-btn" title="Toggle AI Assistant">
           <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
         </button>
+
         <button class="btn btn-icon btn-ghost" data-theme-toggle title="Toggle Theme" aria-label="Toggle Theme">
           <span data-theme-icon></span>
         </button>
-        <a href="settings.html" class="btn btn-icon btn-ghost" title="Settings">
-          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+
+        <a href="dashboard.html" class="btn btn-icon btn-ghost" title="Back to Dashboard">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
         </a>
       </div>
     </header>
 
     <!-- Workspace Main Body Viewport -->
-    <div class="workspace-body">
+    <div class="workspace-body" id="workspace-body">
       <!-- 1. Left Panel: File Explorer -->
       <aside class="file-explorer" id="file-explorer-panel">
         <div class="explorer-header">
-          <span>Files</span>
+          <span>Explorer</span>
           <div class="explorer-actions">
             <button class="btn btn-icon btn-ghost btn-sm" id="new-file-btn" title="New File">
               <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -82,100 +96,58 @@
             <button class="btn btn-icon btn-ghost btn-sm" id="new-folder-btn" title="New Folder">
               <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
             </button>
+            <button class="btn btn-icon btn-ghost btn-sm" id="refresh-tree-btn" title="Refresh Files">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            </button>
           </div>
         </div>
 
         <div class="explorer-tree" id="explorer-tree">
-          <!-- Root Node -->
-          <div class="tree-node tree-folder">
-            <svg class="icon icon-sm tree-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-            <span>📁 PROJECT</span>
-          </div>
-
-          <div class="tree-children">
-            <!-- index.html -->
-            <div class="tree-node tree-node-nested tree-file active" data-file-name="index.html">
-              <span>📄</span>
-              <span>index.html</span>
-            </div>
-
-            <!-- css folder -->
-            <div class="tree-node tree-node-nested tree-folder">
-              <svg class="icon icon-sm tree-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-              <span>📁 css</span>
-            </div>
-            <div class="tree-children">
-              <div class="tree-node tree-node-deep tree-file" data-file-name="style.css">
-                <span>🎨</span>
-                <span>style.css</span>
-              </div>
-            </div>
-
-            <!-- js folder -->
-            <div class="tree-node tree-node-nested tree-folder">
-              <svg class="icon icon-sm tree-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-              <span>📁 js</span>
-            </div>
-            <div class="tree-children">
-              <div class="tree-node tree-node-deep tree-file" data-file-name="app.js">
-                <span>⚡</span>
-                <span>app.js</span>
-              </div>
-            </div>
-
-            <!-- README.md -->
-            <div class="tree-node tree-node-nested tree-file" data-file-name="README.md">
-              <span>📘</span>
-              <span>README.md</span>
-            </div>
-          </div>
+          <!-- Dynamically populated by workspace.js -->
         </div>
       </aside>
 
-      <!-- 2. Center Panel: Code Editor + Multi-Tab Bottom Drawer -->
+      <!-- Resizer Handle for Sidebar -->
+      <div class="workspace-resizer-horizontal" id="sidebar-resizer" title="Drag to resize explorer (200px - 450px)"></div>
+
+      <!-- 2. Center Panel: Monaco Code Editor + Bottom Panels -->
       <main class="editor-viewport">
         <!-- Editor Tabs Bar -->
         <div class="editor-tabs-bar" id="editor-tabs-list">
           <!-- Rendered dynamically by workspace.js -->
         </div>
 
-        <!-- Code Editor Surface (Accurate visual placeholder for Monaco in Phase 8) -->
-        <div class="editor-stage">
-          <div class="editor-gutter" id="editor-gutter">
-            <!-- Line numbers dynamically populated -->
+        <!-- Monaco Editor Surface -->
+        <div class="editor-stage" id="editor-stage">
+          <div id="editor-container" class="editor-container"></div>
+          <!-- Binary / Unsupported file informational placeholder -->
+          <div id="binary-file-view" class="binary-file-view" style="display: none;">
+            <div class="binary-file-card">
+              <div class="binary-file-icon">📦</div>
+              <h3 id="binary-file-name">Binary File</h3>
+              <p>This file cannot be displayed in the text editor because it is either binary or uses an unsupported encoding.</p>
+              <div class="binary-file-meta" id="binary-file-meta">Size: -- bytes</div>
+            </div>
           </div>
-          <textarea class="editor-canvas" id="editor-canvas" spellcheck="false" placeholder="// Select a file from the explorer or create a new file"></textarea>
-          <div class="editor-minimap-placeholder" title="Minimap Preview"></div>
         </div>
 
-        <!-- Editor Statusbar -->
-        <footer class="editor-statusbar">
-          <div class="flex items-center gap-4">
-            <span id="status-current-file">/index.html</span>
-            <span class="flex items-center gap-1">
-              <span class="dirty-indicator"></span>
-              <span>Auto-save: Ready</span>
-            </span>
-          </div>
-          <div class="flex items-center gap-4">
-            <span>Spaces: 2</span>
-            <span>UTF-8</span>
-            <span id="status-current-lang">HTML</span>
-          </div>
-        </footer>
+        <!-- Resizer Handle for Bottom Panel -->
+        <div class="workspace-resizer-vertical" id="bottom-panel-resizer" title="Drag to resize panel"></div>
 
         <!-- Bottom Panel (Terminal / Problems / Output / Preview) -->
-        <div class="workspace-bottom-panel tabs-container">
+        <div class="workspace-bottom-panel tabs-container" id="bottom-panel">
           <div class="bottom-tabs-header">
             <div class="bottom-tab-buttons">
               <button class="bottom-tab-btn active" data-tab-target="panel-terminal">Terminal</button>
-              <button class="bottom-tab-btn" data-tab-target="panel-problems">Problems (0)</button>
+              <button class="bottom-tab-btn" data-tab-target="panel-problems">Problems <span id="problems-count-badge" class="badge badge-neutral" style="padding: 1px 5px; font-size: 0.65rem;">0</span></button>
               <button class="bottom-tab-btn" data-tab-target="panel-output">Output</button>
               <button class="bottom-tab-btn" data-tab-target="panel-preview">Live Preview</button>
             </div>
             <div class="flex items-center gap-2">
-              <button class="btn btn-sm btn-ghost" id="terminal-clear-btn">Clear</button>
-              <button class="btn btn-sm btn-ghost text-danger" id="terminal-stop-btn">Stop</button>
+              <button class="btn btn-sm btn-ghost" id="bottom-panel-clear-btn">Clear</button>
+              <button class="btn btn-icon btn-ghost btn-xs" id="toggle-bottom-panel-btn" title="Toggle Bottom Panel (Ctrl+`)">
+                <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
             </div>
           </div>
 
@@ -183,25 +155,32 @@
             <!-- Terminal Pane -->
             <div class="panel-pane active" id="panel-terminal">
               <div class="terminal-screen" id="terminal-screen">
-                <div class="term-line term-output">[DevPilot Sandbox Engine v1.0.0 — Memory limit: 512MB]</div>
-                <div class="term-line"><span class="term-prompt">$</span> <span class="term-cmd">npm run dev</span></div>
-                <div class="term-line term-success">[Server] Local virtual server active at http://localhost:3000/</div>
-                <div class="term-line term-output">Ready for input. Type &apos;run&apos;, &apos;ls&apos;, or &apos;clear&apos;.</div>
+                <div class="term-line term-info">[DevPilot Terminal Sandbox UI]</div>
+                <div class="term-line term-warning">⚠️ Note: Terminal command execution is a UI placeholder in Phase 7 and will be connected to Docker sandboxes in future phases.</div>
+                <div class="term-line"><span class="term-prompt">$</span> <span class="term-cmd">help</span></div>
+                <div class="term-line term-output">DevPilot Workspace v1.0.0 — Type 'clear' to empty console.</div>
               </div>
               <div class="terminal-input-bar">
                 <span class="term-prompt">$</span>
-                <input type="text" id="terminal-command-input" placeholder="Type safe command (e.g. npm run dev)...">
+                <input type="text" id="terminal-command-input" placeholder="Terminal execution placeholder (e.g. npm test)...">
               </div>
             </div>
 
             <!-- Problems Pane -->
-            <div class="panel-pane" id="panel-problems" style="padding: var(--space-4);">
-              <div class="text-xs text-muted">No compilation or lint problems detected in workspace.</div>
+            <div class="panel-pane" id="panel-problems">
+              <div class="problems-container" id="problems-container">
+                <div class="empty-problems-state">
+                  <svg class="icon" viewBox="0 0 24 24" style="width:28px; height:28px; stroke: var(--color-success);"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span>No syntax problems or diagnostics detected in workspace.</span>
+                </div>
+              </div>
             </div>
 
             <!-- Output Pane -->
-            <div class="panel-pane" id="panel-output" style="padding: var(--space-4); font-family: var(--font-family-mono); font-size: 0.75rem;">
-              <div class="text-secondary">[Sandbox Daemon] CPU Quota: 1.0 core. Network Isolation: Active.</div>
+            <div class="panel-pane" id="panel-output">
+              <div class="terminal-screen" id="output-screen" style="color: var(--color-text-secondary);">
+                <!-- Populated dynamically with workspace events -->
+              </div>
             </div>
 
             <!-- Live Preview Pane -->
@@ -209,19 +188,36 @@
               <div class="preview-container">
                 <div class="preview-toolbar">
                   <div class="flex items-center gap-2">
-                    <span class="badge badge-success">SANDBOX</span>
-                    <input type="text" class="preview-address-bar" value="http://localhost:3000/index.html" readonly>
+                    <span class="badge badge-success">SANDBOX PREVIEW</span>
+                    <input type="text" class="preview-address-bar" id="preview-url-bar" value="http://localhost:3000/index.html" readonly>
                   </div>
                   <div class="flex items-center gap-2">
                     <button class="btn btn-sm btn-secondary" id="preview-refresh-btn">Refresh</button>
-                    <button class="btn btn-sm btn-ghost" onclick="alert('Full screen sandbox preview will open in a new tab.');">Open In New Tab</button>
                   </div>
                 </div>
-                <iframe id="preview-iframe" class="preview-viewport" sandbox="allow-scripts" srcdoc="<h2 style='font-family:sans-serif; text-align:center; padding-top:2rem;'>DevPilot Live Sandbox Preview Ready</h2>" style="border:none; width:100%; height:100%;"></iframe>
+                <iframe id="preview-iframe" class="preview-viewport" sandbox="allow-scripts" srcdoc="<h2 style='font-family:sans-serif; text-align:center; padding-top:2rem; color:#94a3b8;'>DevPilot Live Sandbox Preview Ready</h2>" style="border:none; width:100%; height:100%;"></iframe>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Editor Statusbar -->
+        <footer class="editor-statusbar">
+          <div class="flex items-center gap-4">
+            <span id="status-current-file">/index.html</span>
+            <span class="flex items-center gap-1">
+              <span class="dirty-indicator" id="status-dirty-dot" style="display:none;"></span>
+              <span id="status-save-state">Saved</span>
+            </span>
+          </div>
+          <div class="flex items-center gap-4">
+            <span id="status-cursor-pos">Ln 1, Col 1</span>
+            <span id="status-tab-size">Spaces: 4</span>
+            <span id="status-encoding">UTF-8</span>
+            <span id="status-line-ending">LF</span>
+            <span id="status-current-lang" style="font-weight: 600;">PLAINTEXT</span>
+          </div>
+        </footer>
       </main>
 
       <!-- 3. Right Panel: AI Assistant -->
@@ -231,7 +227,7 @@
             <span class="ai-online-dot"></span>
             <strong>DevPilot AI</strong>
           </div>
-          <span class="badge badge-neutral">Gemini 1.5 Pro</span>
+          <span class="badge badge-neutral">Assistant</span>
         </div>
 
         <!-- Quick Action Prompt Pills -->
@@ -248,7 +244,7 @@
         <div class="ai-messages-container" id="ai-messages-container">
           <div class="ai-chat-bubble assistant">
             <strong>DevPilot AI</strong>
-            <p>Hello! I am connected to your workspace with contextual awareness of <code>devpilot-cloud-platform</code>. How can I help you build today?</p>
+            <p>Welcome to DevPilot AI Workspace. Monaco Editor is initialized and ready. How can I help you build today?</p>
           </div>
         </div>
 
@@ -267,12 +263,119 @@
     </div>
   </div>
 
+  <!-- Custom Context Menu for File Explorer -->
+  <div id="file-context-menu" class="context-menu" style="display: none;">
+    <div class="context-menu-item" id="ctx-open-file">Open File</div>
+    <div class="context-menu-item" id="ctx-new-file">New File...</div>
+    <div class="context-menu-item" id="ctx-new-folder">New Folder...</div>
+    <div class="context-menu-separator"></div>
+    <div class="context-menu-item" id="ctx-rename-item">Rename...</div>
+    <div class="context-menu-item text-danger" id="ctx-delete-item">Delete</div>
+  </div>
+
+  <!-- Quick Open Modal (Ctrl+P) -->
+  <div id="quick-open-modal" class="palette-overlay" style="display: none;">
+    <div class="palette-dialog">
+      <div class="palette-search-wrapper">
+        <svg class="icon icon-sm palette-search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="quick-open-input" class="palette-input" placeholder="Search files by name or path... (Esc to close)" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="palette-list" id="quick-open-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Command Palette Modal (Ctrl+Shift+P) -->
+  <div id="command-palette-modal" class="palette-overlay" style="display: none;">
+    <div class="palette-dialog">
+      <div class="palette-search-wrapper">
+        <svg class="icon icon-sm palette-search-icon" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        <input type="text" id="command-palette-input" class="palette-input" placeholder="Type a command... (e.g. Save, Theme, Font, Format)" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="palette-list" id="command-palette-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Editor Preferences Modal -->
+  <div id="editor-settings-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Editor Preferences</h3>
+        <button class="modal-close" id="editor-settings-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group mb-4">
+          <label class="form-label" for="pref-font-size">Font Size (px)</label>
+          <select id="pref-font-size" class="form-control">
+            <option value="12">12 px</option>
+            <option value="13">13 px</option>
+            <option value="14" selected>14 px (Default)</option>
+            <option value="15">15 px</option>
+            <option value="16">16 px</option>
+            <option value="18">18 px</option>
+            <option value="20">20 px</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="form-label" for="pref-tab-size">Tab Size</label>
+          <select id="pref-tab-size" class="form-control">
+            <option value="2">2 spaces</option>
+            <option value="4" selected>4 spaces (Default)</option>
+            <option value="8">8 spaces</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="form-label" for="pref-word-wrap">Word Wrap</label>
+          <select id="pref-word-wrap" class="form-control">
+            <option value="on" selected>On (Wrap long lines)</option>
+            <option value="off">Off (Horizontal scrolling)</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-4">
+          <label class="form-label" for="pref-minimap">Minimap Preview</label>
+          <select id="pref-minimap" class="form-control">
+            <option value="true" selected>Enabled</option>
+            <option value="false">Disabled</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="editor-settings-cancel-btn">Cancel</button>
+        <button class="btn btn-primary" id="editor-settings-save-btn">Apply Preferences</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Unsaved Changes Confirmation Modal -->
+  <div id="unsaved-confirm-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Unsaved Changes</h3>
+      </div>
+      <div class="modal-body">
+        <p>You have unsaved changes in <strong id="unsaved-file-name">file</strong>. Do you want to save your changes before closing?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="unsaved-cancel-btn">Cancel</button>
+        <button class="btn btn-secondary text-danger" id="unsaved-discard-btn">Discard</button>
+        <button class="btn btn-primary" id="unsaved-save-btn">Save and Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Notification Toast Container -->
   <div id="toast-container" class="toast-container"></div>
 
   <!-- Scripts -->
   <script type="module" src="js/components.js"></script>
   <script type="module" src="js/navigation.js"></script>
+  <script type="module" src="js/editor.js"></script>
   <script type="module" src="js/workspace.js"></script>
 </body>
 </html>

@@ -43,6 +43,7 @@ const jsFiles = [
   'login.js',
   'register.js',
   'dashboard.js',
+  'editor.js',
   'workspace.js',
   'settings.js',
   'profile.js'

@@ -50,7 +50,7 @@
 /* Main Split Viewport */
 .workspace-body {
   display: grid;
-  grid-template-columns: 240px 1fr 340px;
+  grid-template-columns: var(--sidebar-width, 260px) 1fr var(--ai-sidebar-width, 340px);
   flex: 1;
   overflow: hidden;
   position: relative;
@@ -201,55 +201,85 @@
   background-color: var(--color-warning-light);
 }
 
-/* Visual Code Editor Mock Area */
 .editor-stage {
   flex: 1;
   display: flex;
   overflow: hidden;
   position: relative;
   background-color: var(--color-bg-base);
+  min-height: 120px;
 }
 
-.editor-gutter {
-  width: 50px;
-  padding: var(--space-3) 0;
-  background-color: var(--color-bg-primary);
-  border-right: 1px solid var(--color-border-subtle);
-  text-align: right;
-  padding-right: var(--space-3);
-  font-family: var(--font-family-mono);
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
-  line-height: 1.6;
-  user-select: none;
+.editor-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
 }
 
-.editor-canvas {
-  flex: 1;
-  padding: var(--space-3) var(--space-4);
-  overflow: auto;
-  font-family: var(--font-family-mono);
-  font-size: 0.82rem;
-  line-height: 1.6;
-  color: #e6edf3;
-  white-space: pre;
-}
-
-textarea.editor-canvas {
-  background: transparent;
+.fallback-editor-textarea {
+  width: 100%;
+  height: 100%;
+  padding: var(--space-4);
+  background: var(--color-bg-base);
+  color: var(--color-text-primary);
   border: none;
   outline: none;
   resize: none;
-  width: 100%;
-  height: 100%;
-  tab-size: 2;
+  font-family: var(--font-family-mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
 }
 
-.editor-minimap-placeholder {
-  width: 60px;
-  background-color: rgba(255, 255, 255, 0.02);
-  border-left: 1px solid var(--color-border-subtle);
-  opacity: 0.5;
+.binary-file-view {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg-base);
+  padding: 2rem;
+  z-index: 5;
+}
+
+.binary-file-card {
+  max-width: 440px;
+  background-color: var(--color-bg-primary);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.binary-file-icon {
+  font-size: 2.5rem;
+  margin-bottom: var(--space-3);
+}
+
+.binary-file-card h3 {
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.binary-file-card p {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--space-4);
+}
+
+.binary-file-meta {
+  font-family: var(--font-family-mono);
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
 }
 
 .editor-statusbar {
@@ -565,4 +595,239 @@ textarea.editor-canvas {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+/* ==========================================================================
+   Phase 7 — Resizer Splitters, Palettes, Context Menu & IDE Enhancements
+   ========================================================================== */
+
+/* Splitter Resizer Handles */
+.workspace-resizer-horizontal {
+  width: 5px;
+  cursor: col-resize;
+  background-color: transparent;
+  transition: background-color var(--transition-fast);
+  z-index: 10;
+  position: relative;
+  user-select: none;
+}
+
+.workspace-resizer-horizontal:hover,
+.workspace-resizer-horizontal.resizing {
+  background-color: var(--color-primary);
+}
+
+.workspace-resizer-vertical {
+  height: 5px;
+  cursor: row-resize;
+  background-color: transparent;
+  transition: background-color var(--transition-fast);
+  z-index: 10;
+  position: relative;
+  user-select: none;
+}
+
+.workspace-resizer-vertical:hover,
+.workspace-resizer-vertical.resizing {
+  background-color: var(--color-primary);
+}
+
+/* Command Palette & Quick Open Overlays */
+.palette-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 10vh;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.palette-dialog {
+  width: 580px;
+  max-width: 92vw;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.palette-search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  background-color: var(--color-surface);
+}
+
+.palette-search-icon {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.palette-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-sans);
+}
+
+.palette-input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.palette-list {
+  max-height: 340px;
+  overflow-y: auto;
+  padding: var(--space-2) 0;
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px var(--space-4);
+  cursor: pointer;
+  color: var(--color-text-primary);
+  font-size: 0.82rem;
+  transition: background-color var(--transition-fast);
+}
+
+.palette-item:hover,
+.palette-item.selected {
+  background-color: var(--color-surface-hover);
+}
+
+.palette-item-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-item-desc {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  margin-left: var(--space-2);
+}
+
+.palette-item-shortcut {
+  font-family: var(--font-family-mono);
+  font-size: 0.68rem;
+  padding: 2px 6px;
+  background-color: var(--color-bg-base);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xs);
+  color: var(--color-text-secondary);
+}
+
+.palette-empty {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+/* Custom Context Menu */
+.context-menu {
+  position: fixed;
+  z-index: 2500;
+  min-width: 170px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  padding: 4px 0;
+  user-select: none;
+}
+
+.context-menu-item {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color var(--transition-fast);
+}
+
+.context-menu-item:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.context-menu-separator {
+  height: 1px;
+  background-color: var(--color-border-subtle);
+  margin: 4px 0;
+}
+
+/* Diagnostics & Problems Panel */
+.problems-container {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.empty-problems-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  padding: var(--space-6);
+}
+
+.problems-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  font-family: var(--font-family-mono);
+}
+
+.problems-table th,
+.problems-table td {
+  padding: 6px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.problems-table th {
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+/* Keyboard hint badge in navbar */
+.kbd-hint {
+  font-family: var(--font-family-mono);
+  font-size: 0.65rem;
+  padding: 1px 5px;
+  background-color: var(--color-surface-active);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xs);
+  color: var(--color-text-muted);
+  margin-left: 4px;
+}
+
+/* Responsive Hide for Text in Toolbar */
+@media (max-width: 860px) {
+  .btn-text-responsive,
+  .kbd-hint {
+    display: none;
+  }
 }
