@@ -37,6 +37,7 @@ import { gitClient } from './git.js';
 import { gitHubClient } from './github.js';
 import { buildClient } from './build.js';
 import { deploymentClient } from './deployment.js';
+import { cicdClient } from './cicd.js';
 
 // Centralized Workspace State
 const workspaceState = {
@@ -1433,15 +1434,17 @@ function initSourceControl() {
   const actGit = document.getElementById('act-btn-git');
   const actGitHub = document.getElementById('act-btn-github');
   const actBuildDeploy = document.getElementById('act-btn-build-deploy');
+  const actCicd = document.getElementById('act-btn-cicd');
 
   const panelExplorer = document.getElementById('file-explorer-panel');
   const panelGit = document.getElementById('source-control-panel');
   const panelGitHub = document.getElementById('github-panel');
   const panelBuildDeploy = document.getElementById('build-deploy-panel');
+  const panelCicd = document.getElementById('cicd-panel');
 
   function switchSidebarPanel(targetBtn, targetPanel) {
-    [actExplorer, actGit, actGitHub, actBuildDeploy].forEach(b => b?.classList.remove('active'));
-    [panelExplorer, panelGit, panelGitHub, panelBuildDeploy].forEach(p => { if (p) p.style.display = 'none'; });
+    [actExplorer, actGit, actGitHub, actBuildDeploy, actCicd].forEach(b => b?.classList.remove('active'));
+    [panelExplorer, panelGit, panelGitHub, panelBuildDeploy, panelCicd].forEach(p => { if (p) p.style.display = 'none'; });
 
     targetBtn?.classList.add('active');
     if (targetPanel) targetPanel.style.display = 'flex';
@@ -1452,6 +1455,7 @@ function initSourceControl() {
   if (actGit) actGit.addEventListener('click', () => { switchSidebarPanel(actGit, panelGit); loadGitStatus(); });
   if (actGitHub) actGitHub.addEventListener('click', () => { switchSidebarPanel(actGitHub, panelGitHub); loadGitHubStatus(); });
   if (actBuildDeploy) actBuildDeploy.addEventListener('click', () => { switchSidebarPanel(actBuildDeploy, panelBuildDeploy); loadBuildAndDeployStatus(); });
+  if (actCicd) actCicd.addEventListener('click', () => { switchSidebarPanel(actCicd, panelCicd); loadCicdPipelines(); });
 
   document.getElementById('git-refresh-btn')?.addEventListener('click', () => loadGitStatus());
 
@@ -2353,4 +2357,182 @@ function renderDeploymentStatus(deployments) {
     if (urlBox) urlBox.style.display = 'none';
   }
 }
+
+/**
+ * 22. CI/CD Pipeline IDE Integration (Phase 13)
+ */
+async function loadCicdPipelines() {
+  if (!workspaceState.projectId) return;
+  try {
+    const res = await cicdClient.getPipelines(workspaceState.projectId);
+    const pipelines = res.data || [];
+    if (pipelines.length === 0) return;
+
+    const pipeline = pipelines[0];
+    workspaceState.activePipeline = pipeline;
+
+    const titleEl = document.getElementById('cicd-pipeline-title');
+    const badgeEl = document.getElementById('cicd-pipeline-status-badge');
+    const descEl = document.getElementById('cicd-pipeline-desc');
+
+    if (titleEl) titleEl.textContent = pipeline.name || 'Active Pipeline';
+    if (badgeEl) {
+      badgeEl.textContent = pipeline.enabled ? 'ENABLED' : 'DISABLED';
+      badgeEl.className = pipeline.enabled ? 'badge badge-success' : 'badge badge-neutral';
+    }
+    if (descEl) descEl.textContent = pipeline.description || 'Automated build & test pipeline';
+
+    const runsRes = await cicdClient.getPipelineRuns(workspaceState.projectId, pipeline.id, 0, 10);
+    const runs = runsRes.data ? (runsRes.data.content || runsRes.data) : [];
+    if (runs && runs.length > 0) {
+      const latestRun = runs[0];
+      workspaceState.activePipelineRun = latestRun;
+      await renderActivePipelineRun(pipeline.id, latestRun);
+    }
+  } catch (err) {
+    console.error('[CI/CD Pipelines Load Error]', err);
+  }
+}
+
+async function renderActivePipelineRun(pipelineId, run) {
+  const card = document.getElementById('cicd-active-run-card');
+  const badgeEl = document.getElementById('cicd-run-status-badge');
+  const metaEl = document.getElementById('cicd-run-meta');
+  const cancelBtn = document.getElementById('cancel-pipeline-run-btn');
+
+  if (card) card.style.display = 'block';
+  if (badgeEl) {
+    badgeEl.textContent = run.status;
+    badgeEl.className = `badge cicd-badge-${run.status}`;
+  }
+  if (metaEl) {
+    metaEl.textContent = `Branch: ${run.branch || 'main'} • Commit: ${(run.commitSha || 'HEAD').substring(0, 7)}`;
+  }
+  if (cancelBtn) {
+    cancelBtn.style.display = (run.status === 'RUNNING' || run.status === 'QUEUED') ? 'inline-block' : 'none';
+  }
+
+  try {
+    const stepsRes = await cicdClient.getRunSteps(workspaceState.projectId, pipelineId, run.id);
+    const steps = stepsRes.data || [];
+    renderPipelineSteps(steps);
+  } catch (err) {
+    console.error('[CI/CD Steps Error]', err);
+  }
+
+  try {
+    const logsRes = await cicdClient.getRunLogs(workspaceState.projectId, pipelineId, run.id);
+    const logs = logsRes.data ? (logsRes.data.logs || []) : [];
+    renderPipelineLogs(logs);
+  } catch (err) {
+    console.error('[CI/CD Logs Error]', err);
+  }
+}
+
+function renderPipelineSteps(steps) {
+  const container = document.getElementById('cicd-steps-list');
+  if (!container) return;
+
+  if (!steps || steps.length === 0) {
+    container.innerHTML = '<div style="font-size:0.75rem; color:var(--color-text-muted); padding:4px 0;">No steps executed yet.</div>';
+    return;
+  }
+
+  container.innerHTML = steps.map(s => {
+    const statusIcon = s.status === 'SUCCESS' ? '✓' : (s.status === 'FAILED' ? '✕' : (s.status === 'RUNNING' ? '⏳' : '•'));
+    const badgeClass = `cicd-badge-${s.status}`;
+    const duration = s.durationMs ? `${(s.durationMs / 1000).toFixed(1)}s` : '';
+    return `
+      <div class="step-item">
+        <span class="step-item-name">${statusIcon} ${escapeHtml(s.stepName)}</span>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:0.7rem; color:var(--color-text-muted);">${duration}</span>
+          <span class="badge ${badgeClass}" style="font-size:0.65rem;">${s.status}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderPipelineLogs(logs) {
+  const container = document.getElementById('cicd-terminal-output');
+  if (!container) return;
+
+  if (!logs || logs.length === 0) {
+    container.innerHTML = '<div class="cicd-terminal-line cicd-log-stdout">DevPilot CI/CD terminal ready. Waiting for log output...</div>';
+    return;
+  }
+
+  container.innerHTML = logs.map(l => {
+    const streamClass = l.stream === 'stderr' ? 'cicd-log-stderr' : 'cicd-log-stdout';
+    const ts = l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : '';
+    return `
+      <div class="cicd-terminal-line ${streamClass}">
+        <span class="cicd-log-ts">[${ts}]</span>
+        <span>[${escapeHtml(l.stepName)}]</span>
+        <span>${escapeHtml(l.message)}</span>
+      </div>
+    `;
+  }).join('');
+
+  container.scrollTop = container.scrollHeight;
+}
+
+// Event listeners for CI/CD panel buttons
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('cicd-refresh-btn')?.addEventListener('click', () => loadCicdPipelines());
+
+  document.getElementById('trigger-pipeline-run-btn')?.addEventListener('click', async () => {
+    if (!workspaceState.activePipeline) return;
+    try {
+      showToast('Pipeline Triggered', 'Queued pipeline execution run...', 'info');
+      const res = await cicdClient.triggerPipelineRun(workspaceState.projectId, workspaceState.activePipeline.id, 'main', 'HEAD');
+      loadCicdPipelines();
+    } catch (err) {
+      showToast('Trigger Failed', err.message, 'danger');
+    }
+  });
+
+  document.getElementById('cancel-pipeline-run-btn')?.addEventListener('click', async () => {
+    if (!workspaceState.activePipeline || !workspaceState.activePipelineRun) return;
+    try {
+      await cicdClient.cancelPipelineRun(workspaceState.projectId, workspaceState.activePipeline.id, workspaceState.activePipelineRun.id);
+      showToast('Pipeline Cancelled', 'Pipeline run execution cancelled.', 'warning');
+      loadCicdPipelines();
+    } catch (err) {
+      showToast('Cancel Failed', err.message, 'danger');
+    }
+  });
+
+  document.getElementById('rerun-pipeline-run-btn')?.addEventListener('click', async () => {
+    if (!workspaceState.activePipeline || !workspaceState.activePipelineRun) return;
+    try {
+      await cicdClient.rerunPipelineRun(workspaceState.projectId, workspaceState.activePipeline.id, workspaceState.activePipelineRun.id);
+      showToast('Pipeline Rerun', 'Queued new rerun execution.', 'info');
+      loadCicdPipelines();
+    } catch (err) {
+      showToast('Rerun Failed', err.message, 'danger');
+    }
+  });
+
+  document.getElementById('diagnose-pipeline-run-btn')?.addEventListener('click', async () => {
+    if (!workspaceState.activePipeline || !workspaceState.activePipelineRun) return;
+    try {
+      showToast('AI Diagnosing', 'Analyzing pipeline failure step and stderr logs...', 'info');
+      const res = await cicdClient.diagnosePipelineRun(workspaceState.projectId, workspaceState.activePipeline.id, workspaceState.activePipelineRun.id);
+      const diag = res.data;
+      if (diag) {
+        alert(`✨ AI PIPELINE DIAGNOSIS\n\nFailed Step: ${diag.failedStep}\nSummary: ${diag.summary}\n\nLikely Cause:\n${diag.likelyCause}\n\nSuggested Fix:\n${diag.suggestedFix}`);
+      }
+    } catch (err) {
+      showToast('Diagnosis Error', err.message, 'danger');
+    }
+  });
+
+  document.getElementById('clear-cicd-logs-btn')?.addEventListener('click', () => {
+    const container = document.getElementById('cicd-terminal-output');
+    if (container) container.innerHTML = '<div class="cicd-terminal-line cicd-log-stdout">Terminal cleared.</div>';
+  });
+});
+
 

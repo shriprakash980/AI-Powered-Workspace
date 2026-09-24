@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="css/global.css">
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/workspace.css">
+  <link rel="stylesheet" href="css/cicd.css">
   <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
@@ -99,6 +100,9 @@
         </button>
         <button class="activity-bar-btn" id="act-btn-build-deploy" title="Build & Deploy Platform" data-panel="build-deploy-panel">
           <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </button>
+        <button class="activity-bar-btn" id="act-btn-cicd" title="CI/CD Pipelines" data-panel="cicd-panel">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         </button>
       </nav>
 
@@ -318,6 +322,68 @@
             </div>
             <div class="git-file-list" id="build-history-list">
               <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 1e. Left Panel: CI/CD Pipelines -->
+      <aside class="cicd-sidebar" id="cicd-panel" style="display: none;">
+        <div class="git-panel-header">
+          <span>CI/CD Pipelines</span>
+          <div class="flex items-center gap-1">
+            <button class="btn btn-icon btn-ghost btn-xs" id="cicd-refresh-btn" title="Refresh Pipelines">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="git-panel-body" style="display:flex; flex-direction:column; gap:12px; padding:10px;">
+          <!-- Active Pipeline Overview Card -->
+          <div class="cicd-card">
+            <div class="flex items-center justify-between">
+              <div style="font-size:0.75rem; font-weight:700; color:var(--color-text-muted); text-transform:uppercase;" id="cicd-pipeline-title">Active Pipeline</div>
+              <span class="badge badge-neutral" id="cicd-pipeline-status-badge">ENABLED</span>
+            </div>
+            <div style="font-size:0.8rem; color:var(--color-text-primary);" id="cicd-pipeline-desc">Automated build & test pipeline</div>
+            <div class="grid grid-cols-2 gap-2" style="margin-top:4px;">
+              <button class="btn btn-xs btn-primary" id="trigger-pipeline-run-btn">▶ Run Pipeline</button>
+              <button class="btn btn-xs btn-secondary" id="open-pipeline-config-btn">📄 Edit Config</button>
+            </div>
+          </div>
+
+          <!-- Active Run Status -->
+          <div class="cicd-card" id="cicd-active-run-card" style="display:none;">
+            <div class="flex items-center justify-between">
+              <span style="font-size:0.75rem; font-weight:700; color:var(--color-text-muted); text-transform:uppercase;">Latest Run</span>
+              <span class="badge" id="cicd-run-status-badge">QUEUED</span>
+            </div>
+            <div style="font-size:0.78rem; color:var(--color-text-muted);" id="cicd-run-meta">Branch: main • Commit: HEAD</div>
+            <div class="flex items-center gap-2" style="margin-top:4px;">
+              <button class="btn btn-xs btn-ghost text-danger" id="cancel-pipeline-run-btn" style="flex:1; display:none;">🛑 Cancel</button>
+              <button class="btn btn-xs btn-secondary" id="rerun-pipeline-run-btn" style="flex:1;">🔄 Rerun</button>
+              <button class="btn btn-xs btn-outline text-primary" id="diagnose-pipeline-run-btn" style="flex:1;">🤖 AI Diagnosis</button>
+            </div>
+          </div>
+
+          <!-- Pipeline Steps Timeline -->
+          <div>
+            <div class="git-section-header">
+              <span>Pipeline Steps</span>
+            </div>
+            <div class="step-timeline" id="cicd-steps-list">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Terminal Live Logs -->
+          <div>
+            <div class="git-section-header flex items-center justify-between">
+              <span>Execution Logs</span>
+              <button class="btn btn-xs btn-ghost" id="clear-cicd-logs-btn">Clear</button>
+            </div>
+            <div class="cicd-terminal-container" id="cicd-terminal-output">
+              <div class="cicd-terminal-line cicd-log-stdout">DevPilot CI/CD log terminal ready. Click 'Run Pipeline' to execute.</div>
             </div>
           </div>
         </div>

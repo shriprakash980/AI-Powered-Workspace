@@ -32,6 +32,10 @@ public class ApiResponse<T> {
         return new ApiResponse<>(true, message, null, Instant.now().toString());
     }
 
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>(false, message, null, Instant.now().toString());
+    }
+
     public static <T> Builder<T> builder() {
         return new Builder<>();
     }

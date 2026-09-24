@@ -1,0 +1,118 @@
+/* ==========================================================================
+   DevPilot AI — CI/CD Pipeline & Terminal Log Styling (Phase 13)
+   ========================================================================== */
+
+.cicd-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border);
+}
+
+.cicd-card {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cicd-badge-QUEUED {
+  background: var(--color-neutral-subtle, rgba(255, 255, 255, 0.1));
+  color: var(--color-text-muted);
+}
+
+.cicd-badge-RUNNING {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  animation: pulse-blue 1.5s infinite;
+}
+
+.cicd-badge-SUCCESS {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.cicd-badge-FAILED {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.cicd-badge-CANCELLED {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.cicd-badge-SKIPPED {
+  background: rgba(107, 114, 128, 0.15);
+  color: #9ca3af;
+}
+
+@keyframes pulse-blue {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Step timeline list */
+.step-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+}
+
+.step-item-name {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Live Terminal Log Viewer */
+.cicd-terminal-container {
+  background: #0d1117;
+  color: #c9d1d9;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  border-radius: var(--radius-sm);
+  border: 1px solid #30363d;
+  padding: 10px;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.cicd-terminal-line {
+  display: flex;
+  gap: 8px;
+  word-break: break-all;
+}
+
+.cicd-log-ts {
+  color: #8b949e;
+  font-size: 0.72rem;
+  user-select: none;
+}
+
+.cicd-log-stdout {
+  color: #e6edf3;
+}
+
+.cicd-log-stderr {
+  color: #f85149;
+}

@@ -63,6 +63,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/health", "/api/v1/health").permitAll()
                 // Public authentication endpoints
                 .requestMatchers(HttpMethod.POST, "/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/refresh", "/api/v1/auth/logout").permitAll()
+                // Public GitHub Webhooks endpoint (HMAC signature verified)
+                .requestMatchers(HttpMethod.POST, "/api/v1/webhooks/github").permitAll()
                 // Admin role endpoint
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 // Current user profile

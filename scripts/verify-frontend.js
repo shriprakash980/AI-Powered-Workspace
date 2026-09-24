@@ -27,6 +27,7 @@ const cssFiles = [
   'auth.css',
   'dashboard.css',
   'workspace.css',
+  'cicd.css',
   'settings.css',
   'profile.css',
   'responsive.css'
@@ -41,6 +42,7 @@ const jsFiles = [
   'github.js',
   'build.js',
   'deployment.js',
+  'cicd.js',
   'components.js',
   'navigation.js',
   'landing.js',
