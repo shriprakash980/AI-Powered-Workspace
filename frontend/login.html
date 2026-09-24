@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — DevPilot AI</title>
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div class="auth-wrapper">
+    <!-- Branding Side Column -->
+    <aside class="auth-banner">
+      <a href="index.html" class="navbar-brand">
+        <div class="navbar-brand-icon">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </div>
+        <span>DevPilot AI</span>
+      </a>
+
+      <div class="auth-banner-quote">
+        <blockquote>
+          &ldquo;Software development elevated with deep context awareness and isolated execution.&rdquo;
+        </blockquote>
+        <cite>DevPilot Autonomous Engineering Workspace</cite>
+
+        <div class="auth-features-list">
+          <div class="auth-feature-item">
+            <svg class="icon icon-sm text-accent" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Multi-language Monaco-grade editor interface</span>
+          </div>
+          <div class="auth-feature-item">
+            <svg class="icon icon-sm text-accent" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Context-driven AI assistant with diff confirmations</span>
+          </div>
+          <div class="auth-feature-item">
+            <svg class="icon icon-sm text-accent" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Ephemeral container sandboxes with memory limits</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-xs text-muted">
+        &copy; 2026 DevPilot AI. All rights reserved.
+      </div>
+    </aside>
+
+    <!-- Form Side Column -->
+    <main class="auth-form-container">
+      <div class="auth-header">
+        <h1 class="auth-title">Welcome back</h1>
+        <p class="auth-subtitle">Enter your credentials to access your developer workspace</p>
+      </div>
+
+      <!-- GitHub OAuth UI Placeholder -->
+      <button type="button" class="social-auth-btn" id="github-login-btn">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+        <span>Continue with GitHub</span>
+      </button>
+
+      <div class="auth-divider">
+        <span>or sign in with email</span>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address</label>
+          <input type="email" id="email" class="form-control" placeholder="developer@example.com" required autocomplete="email">
+          <div class="form-error" id="email-error"></div>
+        </div>
+
+        <div class="form-group">
+          <div class="flex justify-between items-center">
+            <label for="password" class="form-label">Password</label>
+            <a href="#" class="text-xs text-accent" onclick="alert('Password reset instructions will be sent via email.'); return false;">Forgot password?</a>
+          </div>
+          <div class="password-input-wrapper">
+            <input type="password" id="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+            <button type="button" class="password-toggle-btn" id="toggle-password-btn" aria-label="Toggle password visibility">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="form-error" id="password-error"></div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: var(--space-6);">
+          <label class="flex items-center gap-2" style="cursor: pointer;">
+            <input type="checkbox" id="remember-me" style="accent-color: var(--color-primary);">
+            <span class="text-xs text-secondary">Remember this device for 30 days</span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="login-submit-btn" style="width: 100%;">
+          Sign In
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Don&apos;t have an account? <a href="register.html" class="text-accent font-medium">Create account</a>
+      </div>
+    </main>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script type="module" src="js/navigation.js"></script>
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>

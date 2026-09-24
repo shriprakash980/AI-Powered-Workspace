@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Workspace — DevPilot AI</title>
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/workspace.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div class="workspace-shell">
+    <!-- Top Workspace Navbar -->
+    <header class="workspace-nav">
+      <div class="workspace-nav-left">
+        <a href="dashboard.html" class="navbar-brand">
+          <div class="navbar-brand-icon">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          </div>
+          <span style="font-size: var(--font-size-sm);">DevPilot</span>
+        </a>
+
+        <div class="project-breadcrumb">
+          <span>/</span>
+          <button class="btn btn-sm btn-ghost" id="toggle-explorer-btn" title="Toggle File Tree">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          </button>
+          <span class="project-title">devpilot-cloud-platform</span>
+          <span class="badge badge-success">Running</span>
+        </div>
+      </div>
+
+      <div class="workspace-nav-center workspace-actions">
+        <button class="btn btn-sm btn-primary" id="workspace-run-btn" title="Run Sandboxed Project (Ctrl+R)">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>Run</span>
+        </button>
+        <button class="btn btn-sm btn-secondary" onclick="alert('Git synchronizer available in Phase 12.');" title="Source Control">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 012 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
+          <span>Git</span>
+        </button>
+        <button class="btn btn-sm btn-secondary" onclick="alert('Deployments console available in Phase 13.');" title="Deploy Container">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Deploy</span>
+        </button>
+      </div>
+
+      <div class="workspace-nav-right">
+        <button class="btn btn-icon btn-ghost" id="toggle-ai-btn" title="Toggle AI Assistant">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </button>
+        <button class="btn btn-icon btn-ghost" data-theme-toggle title="Toggle Theme" aria-label="Toggle Theme">
+          <span data-theme-icon></span>
+        </button>
+        <a href="settings.html" class="btn btn-icon btn-ghost" title="Settings">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </a>
+      </div>
+    </header>
+
+    <!-- Workspace Main Body Viewport -->
+    <div class="workspace-body">
+      <!-- 1. Left Panel: File Explorer -->
+      <aside class="file-explorer" id="file-explorer-panel">
+        <div class="explorer-header">
+          <span>Files</span>
+          <div class="explorer-actions">
+            <button class="btn btn-icon btn-ghost btn-sm" id="new-file-btn" title="New File">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <button class="btn btn-icon btn-ghost btn-sm" id="new-folder-btn" title="New Folder">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="explorer-tree" id="explorer-tree">
+          <!-- Root Node -->
+          <div class="tree-node tree-folder">
+            <svg class="icon icon-sm tree-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+            <span>📁 PROJECT</span>
+          </div>
+
+          <div class="tree-children">
+            <!-- index.html -->
+            <div class="tree-node tree-node-nested tree-file active" data-file-name="index.html">
+              <span>📄</span>
+              <span>index.html</span>
+            </div>
+
+            <!-- css folder -->
+            <div class="tree-node tree-node-nested tree-folder">
+              <svg class="icon icon-sm tree-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              <span>📁 css</span>
+            </div>
+            <div class="tree-children">
+              <div class="tree-node tree-node-deep tree-file" data-file-name="style.css">
+                <span>🎨</span>
+                <span>style.css</span>
+              </div>
+            </div>
+
+            <!-- js folder -->
+            <div class="tree-node tree-node-nested tree-folder">
+              <svg class="icon icon-sm tree-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              <span>📁 js</span>
+            </div>
+            <div class="tree-children">
+              <div class="tree-node tree-node-deep tree-file" data-file-name="app.js">
+                <span>⚡</span>
+                <span>app.js</span>
+              </div>
+            </div>
+
+            <!-- README.md -->
+            <div class="tree-node tree-node-nested tree-file" data-file-name="README.md">
+              <span>📘</span>
+              <span>README.md</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- 2. Center Panel: Code Editor + Multi-Tab Bottom Drawer -->
+      <main class="editor-viewport">
+        <!-- Editor Tabs Bar -->
+        <div class="editor-tabs-bar" id="editor-tabs-list">
+          <!-- Rendered dynamically by workspace.js -->
+        </div>
+
+        <!-- Code Editor Surface (Accurate visual placeholder for Monaco in Phase 8) -->
+        <div class="editor-stage">
+          <div class="editor-gutter" id="editor-gutter">
+            <!-- Line numbers dynamically populated -->
+          </div>
+          <div class="editor-canvas" id="editor-canvas">
+            <!-- Active file source code populated -->
+          </div>
+          <div class="editor-minimap-placeholder" title="Minimap Preview"></div>
+        </div>
+
+        <!-- Editor Statusbar -->
+        <footer class="editor-statusbar">
+          <div class="flex items-center gap-4">
+            <span id="status-current-file">/index.html</span>
+            <span class="flex items-center gap-1">
+              <span class="dirty-indicator"></span>
+              <span>Auto-save: Ready</span>
+            </span>
+          </div>
+          <div class="flex items-center gap-4">
+            <span>Spaces: 2</span>
+            <span>UTF-8</span>
+            <span id="status-current-lang">HTML</span>
+          </div>
+        </footer>
+
+        <!-- Bottom Panel (Terminal / Problems / Output / Preview) -->
+        <div class="workspace-bottom-panel tabs-container">
+          <div class="bottom-tabs-header">
+            <div class="bottom-tab-buttons">
+              <button class="bottom-tab-btn active" data-tab-target="panel-terminal">Terminal</button>
+              <button class="bottom-tab-btn" data-tab-target="panel-problems">Problems (0)</button>
+              <button class="bottom-tab-btn" data-tab-target="panel-output">Output</button>
+              <button class="bottom-tab-btn" data-tab-target="panel-preview">Live Preview</button>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="btn btn-sm btn-ghost" id="terminal-clear-btn">Clear</button>
+              <button class="btn btn-sm btn-ghost text-danger" id="terminal-stop-btn">Stop</button>
+            </div>
+          </div>
+
+          <div class="bottom-panel-content">
+            <!-- Terminal Pane -->
+            <div class="panel-pane active" id="panel-terminal">
+              <div class="terminal-screen" id="terminal-screen">
+                <div class="term-line term-output">[DevPilot Sandbox Engine v1.0.0 — Memory limit: 512MB]</div>
+                <div class="term-line"><span class="term-prompt">$</span> <span class="term-cmd">npm run dev</span></div>
+                <div class="term-line term-success">[Server] Local virtual server active at http://localhost:3000/</div>
+                <div class="term-line term-output">Ready for input. Type &apos;run&apos;, &apos;ls&apos;, or &apos;clear&apos;.</div>
+              </div>
+              <div class="terminal-input-bar">
+                <span class="term-prompt">$</span>
+                <input type="text" id="terminal-command-input" placeholder="Type safe command (e.g. npm run dev)...">
+              </div>
+            </div>
+
+            <!-- Problems Pane -->
+            <div class="panel-pane" id="panel-problems" style="padding: var(--space-4);">
+              <div class="text-xs text-muted">No compilation or lint problems detected in workspace.</div>
+            </div>
+
+            <!-- Output Pane -->
+            <div class="panel-pane" id="panel-output" style="padding: var(--space-4); font-family: var(--font-family-mono); font-size: 0.75rem;">
+              <div class="text-secondary">[Sandbox Daemon] CPU Quota: 1.0 core. Network Isolation: Active.</div>
+            </div>
+
+            <!-- Live Preview Pane -->
+            <div class="panel-pane" id="panel-preview">
+              <div class="preview-container">
+                <div class="preview-toolbar">
+                  <div class="flex items-center gap-2">
+                    <span class="badge badge-success">SANDBOX</span>
+                    <input type="text" class="preview-address-bar" value="http://localhost:3000/index.html" readonly>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button class="btn btn-sm btn-secondary" id="preview-refresh-btn">Refresh</button>
+                    <button class="btn btn-sm btn-ghost" onclick="alert('Full screen sandbox preview will open in a new tab.');">Open In New Tab</button>
+                  </div>
+                </div>
+                <iframe id="preview-iframe" class="preview-viewport" sandbox="allow-scripts" srcdoc="<h2 style='font-family:sans-serif; text-align:center; padding-top:2rem;'>DevPilot Live Sandbox Preview Ready</h2>" style="border:none; width:100%; height:100%;"></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- 3. Right Panel: AI Assistant -->
+      <aside class="ai-sidebar" id="ai-sidebar-panel">
+        <div class="ai-header">
+          <div class="ai-status-indicator">
+            <span class="ai-online-dot"></span>
+            <strong>DevPilot AI</strong>
+          </div>
+          <span class="badge badge-neutral">Gemini 1.5 Pro</span>
+        </div>
+
+        <!-- Quick Action Prompt Pills -->
+        <div class="ai-quick-actions">
+          <button class="ai-action-chip" data-action="generate">Generate</button>
+          <button class="ai-action-chip" data-action="explain">Explain</button>
+          <button class="ai-action-chip" data-action="debug">Debug</button>
+          <button class="ai-action-chip" data-action="refactor">Refactor</button>
+          <button class="ai-action-chip" data-action="optimize">Optimize</button>
+          <button class="ai-action-chip" data-action="tests">Tests</button>
+        </div>
+
+        <!-- Chat Messages Container -->
+        <div class="ai-messages-container" id="ai-messages-container">
+          <div class="ai-chat-bubble assistant">
+            <strong>DevPilot AI</strong>
+            <p>Hello! I am connected to your workspace with contextual awareness of <code>devpilot-cloud-platform</code>. How can I help you build today?</p>
+          </div>
+        </div>
+
+        <!-- AI Input Wrapper -->
+        <div class="ai-input-wrapper">
+          <textarea id="ai-input-box" class="ai-input-box" placeholder="Ask AI anything about your code..."></textarea>
+          <div class="ai-input-controls">
+            <span class="text-xs text-muted">Press Enter to send</span>
+            <button class="btn btn-sm btn-primary" id="ai-send-btn">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span>Send</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script type="module" src="js/components.js"></script>
+  <script type="module" src="js/navigation.js"></script>
+  <script type="module" src="js/workspace.js"></script>
+</body>
+</html>

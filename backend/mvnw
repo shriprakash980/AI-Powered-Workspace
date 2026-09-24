@@ -1,0 +1,6 @@
+#!/bin/sh
+if [ -x "C:/Users/shrip/.maven/apache-maven-3.9.6/bin/mvn" ]; then
+    "C:/Users/shrip/.maven/apache-maven-3.9.6/bin/mvn" "$@"
+else
+    mvn "$@"
+fi

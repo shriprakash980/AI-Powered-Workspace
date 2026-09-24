@@ -1,0 +1,35 @@
+# Operating System
+.DS_Store
+Thumbs.db
+
+# IDE & Editors
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Java & Build Output
+target/
+backend/target/
+backend/.gradle/
+backend/build/
+*.class
+*.jar
+*.war
+
+# Node & Frontend (if any tools used)
+node_modules/
+.npm/
+dist/
+
+# Environment Variables & Secrets
+.env
+*.local
+*.secret
+
+# Logs & Temp
+*.log
+logs/
+tmp/
+temp/

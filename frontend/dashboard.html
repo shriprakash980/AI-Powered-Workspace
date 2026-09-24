@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — DevPilot AI</title>
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div class="layout-with-sidebar">
+    <!-- Reusable Dashboard Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="index.html" class="navbar-brand">
+          <div class="navbar-brand-icon">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+          </div>
+          <span>DevPilot AI</span>
+        </a>
+      </div>
+
+      <div class="sidebar-content">
+        <div class="sidebar-heading">Workspace</div>
+        <a href="dashboard.html" class="sidebar-link active">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="workspace.html" class="sidebar-link">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          <span>Cloud IDE</span>
+        </a>
+
+        <div class="sidebar-heading">Platform</div>
+        <a href="#projects" class="sidebar-link">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+          <span>Projects</span>
+        </a>
+        <a href="#" class="sidebar-link" onclick="alert('Deployments console available in Phase 13.'); return false;">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <span>Deployments</span>
+        </a>
+        <a href="#" class="sidebar-link" onclick="alert('GitHub repository sync available in Phase 12.'); return false;">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+          <span>GitHub</span>
+        </a>
+        <a href="settings.html" class="sidebar-link">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span>Settings</span>
+        </a>
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="profile.html" class="user-profile-pill">
+          <div class="user-avatar">JD</div>
+          <div class="user-details">
+            <span class="user-name">Jane Developer</span>
+            <span class="user-role">Software Engineer</span>
+          </div>
+        </a>
+        <a href="login.html" class="btn btn-icon btn-ghost" title="Logout" aria-label="Sign out">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Dashboard Area -->
+    <div class="main-content">
+      <!-- Topbar -->
+      <header class="dashboard-topbar">
+        <div class="flex items-center gap-3">
+          <button class="btn btn-icon btn-ghost" data-sidebar-toggle aria-label="Toggle Navigation Drawer">
+            <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <div class="topbar-search">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="project-search-input" class="form-control" placeholder="Search projects or repositories...">
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <button class="btn btn-icon btn-ghost" data-theme-toggle aria-label="Toggle Theme">
+            <span data-theme-icon></span>
+          </button>
+          <button class="btn btn-icon btn-ghost" aria-label="Notifications" onclick="alert('No unread notifications.');">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          </button>
+          <button class="btn btn-primary btn-sm" data-open-create-modal>
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>New Project</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Dashboard View Content -->
+      <main class="dashboard-container">
+        <!-- Welcome Banner -->
+        <section class="welcome-banner">
+          <div>
+            <h1 class="welcome-title">Welcome back, Developer</h1>
+            <p class="welcome-subtitle">Here is what is happening across your developer workspaces today.</p>
+          </div>
+          <button class="btn btn-primary" data-open-create-modal>
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>+ New Project</span>
+          </button>
+        </section>
+
+        <!-- Metric Statistics Cards Grid (Bound dynamically via dashboard.js) -->
+        <section class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-content">
+              <span class="stat-label">Total Projects</span>
+              <span class="stat-value" id="stat-total-projects">-</span>
+              <span class="stat-badge">&uarr; Active repositories</span>
+            </div>
+            <div class="stat-icon">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-content">
+              <span class="stat-label">AI Requests</span>
+              <span class="stat-value" id="stat-ai-requests">-</span>
+              <span class="stat-badge">99.4% precision rate</span>
+            </div>
+            <div class="stat-icon">
+              <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-content">
+              <span class="stat-label">Deployments</span>
+              <span class="stat-value" id="stat-deployments">-</span>
+              <span class="stat-badge">&uarr; Container runs</span>
+            </div>
+            <div class="stat-icon">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-content">
+              <span class="stat-label">Active Projects</span>
+              <span class="stat-value" id="stat-active-projects">-</span>
+              <span class="stat-badge">Ready in memory</span>
+            </div>
+            <div class="stat-icon">
+              <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            </div>
+          </div>
+        </section>
+
+        <!-- Main Dashboard Split: Projects + Activity Feed -->
+        <div class="dashboard-main-grid">
+          <!-- Projects Section -->
+          <section id="projects">
+            <div class="projects-header">
+              <h2 class="card-title">Recent Projects</h2>
+              <div class="text-xs text-muted">Showing active local sandboxes</div>
+            </div>
+
+            <div class="projects-grid" id="projects-grid">
+              <!-- Rendered dynamically by dashboard.js -->
+            </div>
+          </section>
+
+          <!-- Recent Activity Section -->
+          <aside class="activity-card">
+            <h2 class="card-title">Recent Activity</h2>
+            <div class="activity-list" id="activity-list">
+              <!-- Rendered dynamically by dashboard.js -->
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Create Project Modal Dialog -->
+  <div class="modal-backdrop" id="create-project-modal" role="dialog" aria-modal="true" aria-labelledby="modal-create-title" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modal-create-title">Create New Project</h3>
+        <button class="modal-close" data-close-modal aria-label="Close dialog">&times;</button>
+      </div>
+
+      <form id="create-project-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="new-project-name" class="form-label">Project Name</label>
+            <input type="text" id="new-project-name" class="form-control" placeholder="my-awesome-app" required>
+            <span class="text-xs text-muted">Use lowercase letters, numbers, and hyphens.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="new-project-desc" class="form-label">Description</label>
+            <textarea id="new-project-desc" class="form-control" rows="2" placeholder="Brief project summary..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="new-project-template" class="form-label">Template</label>
+            <select id="new-project-template" class="form-control">
+              <option value="BLANK">Blank Project</option>
+              <option value="HTML_CSS_JS" selected>HTML5 / CSS3 / Vanilla JavaScript</option>
+              <option value="JAVA_SPRING">Java 21 Spring Boot 3</option>
+              <option value="FULLSTACK_JAVA">Full Stack Java Enterprise</option>
+              <option value="NODE_EXPRESS">Node.js Express API</option>
+              <option value="PYTHON_FLASK">Python Flask App</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="new-project-lang" class="form-label">Primary Language</label>
+            <select id="new-project-lang" class="form-control">
+              <option value="JavaScript" selected>JavaScript (ES6+)</option>
+              <option value="Java">Java</option>
+              <option value="Python">Python</option>
+              <option value="HTML">HTML / CSS</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
+          <button type="submit" class="btn btn-primary" id="create-submit-btn">Create Project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script type="module" src="js/navigation.js"></script>
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

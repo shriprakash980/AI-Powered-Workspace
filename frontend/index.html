@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevPilot AI — AI-Powered Cloud Developer Workspace</title>
+  <meta name="description" content="An intelligent developer workspace that helps you create, understand, debug and deploy software.">
+
+  <!-- Core CSS Stylesheets -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/navbar.css">
+  <link rel="stylesheet" href="css/landing.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar">
+    <div class="container navbar-container">
+      <a href="index.html" class="navbar-brand">
+        <div class="navbar-brand-icon">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </div>
+        <span>DevPilot AI</span>
+      </a>
+
+      <nav class="navbar-links">
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#how-it-works" class="nav-link">How It Works</a>
+        <a href="#technology" class="nav-link">Technology</a>
+        <a href="#security" class="nav-link">Security</a>
+      </nav>
+
+      <div class="navbar-actions">
+        <button class="btn btn-icon btn-ghost" data-theme-toggle aria-label="Toggle Theme">
+          <span data-theme-icon></span>
+        </button>
+        <a href="login.html" class="btn btn-outline btn-sm">Login</a>
+        <a href="register.html" class="btn btn-primary btn-sm">Get Started</a>
+        <button class="mobile-nav-toggle" aria-label="Toggle Navigation">
+          <svg class="icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div class="mobile-nav-menu">
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#how-it-works" class="nav-link">How It Works</a>
+    <a href="#technology" class="nav-link">Technology</a>
+    <a href="#security" class="nav-link">Security</a>
+    <a href="login.html" class="btn btn-outline">Login</a>
+    <a href="register.html" class="btn btn-primary">Get Started</a>
+  </div>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container">
+        <div class="hero-badge animate-fade-in">
+          <span class="badge badge-primary">Next-Gen IDE</span>
+          <span>Intelligent Cloud Workspace</span>
+        </div>
+
+        <h1 class="hero-title animate-fade-in-up">
+          Build Faster.<br>
+          Code Smarter.<br>
+          <span class="gradient-text">With AI.</span>
+        </h1>
+
+        <p class="hero-subtitle animate-fade-in-up">
+          Your intelligent developer workspace for building, understanding, debugging and deploying software.
+        </p>
+
+        <div class="hero-cta-group animate-fade-in-up">
+          <a href="register.html" class="btn btn-primary btn-lg">Start Building</a>
+          <a href="workspace.html" class="btn btn-secondary btn-lg">Explore Workspace</a>
+        </div>
+
+        <!-- Realistic Static IDE Preview Mockup -->
+        <div class="ide-mockup-wrapper animate-scale-up">
+          <div class="ide-mockup">
+            <div class="ide-titlebar">
+              <div class="ide-traffic-lights">
+                <span class="dot dot-red"></span>
+                <span class="dot dot-yellow"></span>
+                <span class="dot dot-green"></span>
+              </div>
+              <div class="ide-title-text">devpilot-workspace — index.html</div>
+              <div class="badge badge-neutral">Virtual Sandbox #01</div>
+            </div>
+
+            <div class="ide-body">
+              <!-- Mock Sidebar -->
+              <aside class="ide-sidebar">
+                <div style="font-size: 0.65rem; color: var(--color-text-muted); margin-bottom: 8px;">EXPLORER</div>
+                <div class="ide-file-item">📁 src</div>
+                <div class="ide-file-item active" style="margin-left: 12px;">📄 index.html</div>
+                <div class="ide-file-item" style="margin-left: 12px;">🎨 style.css</div>
+                <div class="ide-file-item" style="margin-left: 12px;">⚡ app.js</div>
+                <div class="ide-file-item">📄 README.md</div>
+              </aside>
+
+              <!-- Mock Editor -->
+              <div class="ide-editor">
+                <div class="ide-tabs">
+                  <div class="ide-tab active" data-file="index.html">index.html</div>
+                  <div class="ide-tab" data-file="style.css">style.css</div>
+                  <div class="ide-tab" data-file="app.js">app.js</div>
+                </div>
+                <div class="ide-code-content" id="mock-code-content">&lt;!DOCTYPE html&gt;
+&lt;<span class="syn-tag">html</span> lang="en"&gt;
+&lt;<span class="syn-tag">head</span>&gt;
+  &lt;<span class="syn-tag">meta</span> charset="UTF-8"&gt;
+  &lt;<span class="syn-tag">title</span>&gt;DevPilot Application&lt;/<span class="syn-tag">title</span>&gt;
+  &lt;<span class="syn-tag">link</span> rel="stylesheet" href="style.css"&gt;
+&lt;/<span class="syn-tag">head</span>&gt;
+&lt;<span class="syn-tag">body</span>&gt;
+  &lt;<span class="syn-tag">div</span> id="app"&gt;&lt;/<span class="syn-tag">div</span>&gt;
+  &lt;<span class="syn-tag">script</span> src="app.js"&gt;&lt;/<span class="syn-tag">script</span>&gt;
+&lt;/<span class="syn-tag">body</span>&gt;
+&lt;/<span class="syn-tag">html</span>&gt;</div>
+                <div class="ide-terminal-preview">
+                  <div style="color: #4ade80;">$ npm run dev</div>
+                  <div style="color: #94a3b8;">[vite] ready in 210 ms. Local: http://localhost:3000/</div>
+                </div>
+              </div>
+
+              <!-- Mock AI Panel -->
+              <aside class="ide-ai-panel">
+                <div class="ide-ai-header">
+                  <span class="dot dot-green"></span>
+                  <span>DevPilot Assistant</span>
+                </div>
+                <div class="ide-ai-message" style="background-color: var(--color-primary-subtle); color: #c7d2fe;">
+                  <strong>Dev:</strong> Add reactive state handling to app.js
+                </div>
+                <div class="ide-ai-message">
+                  <strong>AI:</strong> Suggested optimized ES6 Proxy state observer with zero dependencies.
+                  <button class="btn btn-sm btn-primary" id="demo-ai-action" style="margin-top: 6px; width: 100%;">Inspect Diff</button>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section-padding">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Enterprise Capabilities</div>
+          <h2 class="section-title">Engineered for High-Velocity Engineering</h2>
+          <p class="section-desc">A unified cloud workstation combining context-aware AI, low-latency editing, and container-grade isolation.</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
+              <svg class="icon icon-lg" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <h3>AI Code Assistant</h3>
+            <p>Interactive pair programming with complete workspace awareness. Ask questions, clarify architecture, and write code.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
+              <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20z"/><path d="M12 8v4l3 3"/></svg>
+            </div>
+            <h3>Smart Debugging</h3>
+            <p>Diagnose syntax faults and logic bottlenecks directly from execution stack traces with automated patch suggestions.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
+              <svg class="icon icon-lg" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            </div>
+            <h3>Code Generation</h3>
+            <p>Produce production-ready boilerplate, database schemas, REST endpoints, and test cases instantly.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
+              <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+            </div>
+            <h3>Project Workspace</h3>
+            <p>Full-fledged virtual file system supporting nested directories, multi-file editing, and state persistence.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
+              <svg class="icon icon-lg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+            </div>
+            <h3>Live Preview</h3>
+            <p>Instantaneous DOM and iframe sandboxed rendering for HTML/CSS/JavaScript with hot reloading.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
+              <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+            </div>
+            <h3>GitHub Integration</h3>
+            <p>Connect repositories, track diff history, commit source files, and sync pull requests effortlessly.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
+              <svg class="icon icon-lg" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            </div>
+            <h3>Secure Execution</h3>
+            <p>Run code safely inside resource-bounded Docker containers with strict timeouts and memory isolation.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-wrapper">
+              <svg class="icon icon-lg" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <h3>One-Click Deployment</h3>
+            <p>Trigger build sequences, view live deployment logs, and inspect production URLs with single-click ease.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="section-padding" style="background-color: var(--color-bg-primary);">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Developer Workflow</div>
+          <h2 class="section-title">From Concept to Production</h2>
+          <p class="section-desc">Experience an intuitive four-stage cycle optimized for frictionless software creation.</p>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">01</div>
+            <h3>Create Project</h3>
+            <p>Initialize from clean boilerplate templates including Spring Boot, Full Stack Java, Node.js, Python, or Blank canvas.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">02</div>
+            <h3>Build With AI</h3>
+            <p>Collaborate with autonomous AI models that understand your whole codebase context, proposing clean unified diffs.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">03</div>
+            <h3>Test & Preview</h3>
+            <p>Execute tests in sandboxed containers and inspect client-side changes live in real-time interactive previews.</p>
+          </div>
+
+          <div class="step-card">
+            <div class="step-number">04</div>
+            <h3>Deploy</h3>
+            <p>Package artifacts into containerized runtime environments and track production logs and URLs.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technology Section -->
+    <section id="technology" class="section-padding">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Technical Architecture</div>
+          <h2 class="section-title">Built with Proven Enterprise Standards</h2>
+          <p class="section-desc">Zero bloat. Solid engineering. High performance.</p>
+        </div>
+
+        <div class="tech-grid">
+          <div class="tech-card">
+            <span class="font-bold">HTML5</span>
+            <span class="tech-badge">Semantic Core</span>
+          </div>
+          <div class="tech-card">
+            <span class="font-bold">CSS3</span>
+            <span class="tech-badge">Modern Variables & Flex</span>
+          </div>
+          <div class="tech-card">
+            <span class="font-bold">JavaScript</span>
+            <span class="tech-badge">ES6+ Modules</span>
+          </div>
+          <div class="tech-card">
+            <span class="font-bold">Java 21</span>
+            <span class="tech-badge">LTS Runtime</span>
+          </div>
+          <div class="tech-card">
+            <span class="font-bold">Spring Boot 3</span>
+            <span class="tech-badge">REST & Security</span>
+          </div>
+          <div class="tech-card">
+            <span class="font-bold">PostgreSQL 16</span>
+            <span class="tech-badge">Flyway Migrations</span>
+          </div>
+          <div class="tech-card">
+            <span class="font-bold">AI Providers</span>
+            <span class="tech-badge">Gemini / OpenAI / Claude</span>
+          </div>
+          <div class="tech-card">
+            <span class="font-bold">Docker</span>
+            <span class="tech-badge">Container Isolation</span>
+          </div>
+          <div class="tech-card">
+            <span class="font-bold">GitHub</span>
+            <span class="tech-badge">Version Control</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security Section -->
+    <section id="security" class="section-padding" style="background-color: var(--color-bg-primary);">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Security First</div>
+          <h2 class="section-title">Multi-Layered Platform Protection</h2>
+          <p class="section-desc">Robust enterprise security safeguards baked directly into the platform core.</p>
+        </div>
+
+        <div class="security-grid">
+          <div class="security-card">
+            <h4>Secure Authentication</h4>
+            <p>Stateless JWT tokens, salted BCrypt password hashing, and encrypted refresh token revocation.</p>
+          </div>
+
+          <div class="security-card">
+            <h4>Protected APIs</h4>
+            <p>Role-based authorization filters, rate limiting, and strict input validation guarding all endpoints.</p>
+          </div>
+
+          <div class="security-card">
+            <h4>Isolated Code Execution</h4>
+            <p>Ephemeral, non-root Docker execution sandboxes with memory limits and zero host filesystem access.</p>
+          </div>
+
+          <div class="security-card">
+            <h4>Environment Secrets</h4>
+            <p>Server-side secret resolution guaranteeing API keys and database credentials never reach the browser.</p>
+          </div>
+
+          <div class="security-card">
+            <h4>Controlled AI Actions</h4>
+            <p>Human-in-the-loop review. AI cannot unilaterally overwrite project code without explicit developer consent.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final Call to Action -->
+    <section class="section-padding">
+      <div class="container">
+        <div class="cta-banner">
+          <h2 class="section-title" style="margin-bottom: var(--space-4);">Ready to build smarter?</h2>
+          <p class="section-desc" style="margin-bottom: var(--space-8); max-width: 520px; margin-left: auto; margin-right: auto;">
+            Start your development journey with DevPilot AI today and experience the next generation of cloud IDEs.
+          </p>
+          <a href="register.html" class="btn btn-primary btn-lg">Create Your Workspace</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-column">
+          <div class="navbar-brand" style="margin-bottom: var(--space-3);">
+            <div class="navbar-brand-icon">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </div>
+            <span>DevPilot AI</span>
+          </div>
+          <p class="text-sm" style="max-width: 320px;">
+            An intelligent cloud developer workspace developed as a final-year B.Tech Computer Science and Engineering project.
+          </p>
+        </div>
+
+        <div class="footer-column">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">Workflow</a></li>
+            <li><a href="#technology">Tech Stack</a></li>
+            <li><a href="#security">Security</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Developer</h4>
+          <ul>
+            <li><a href="workspace.html">Workspace IDE</a></li>
+            <li><a href="login.html">Developer Login</a></li>
+            <li><a href="register.html">Register</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 DevPilot AI. All rights reserved.</div>
+        <div>Engineered with Vanilla Web Technologies &amp; Spring Boot.</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script type="module" src="js/navigation.js"></script>
+  <script type="module" src="js/landing.js"></script>
+</body>
+</html>

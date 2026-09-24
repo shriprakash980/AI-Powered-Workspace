@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Account — DevPilot AI</title>
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/auth.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div class="auth-wrapper">
+    <!-- Branding Side Column -->
+    <aside class="auth-banner">
+      <a href="index.html" class="navbar-brand">
+        <div class="navbar-brand-icon">
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+        </div>
+        <span>DevPilot AI</span>
+      </a>
+
+      <div class="auth-banner-quote">
+        <blockquote>
+          &ldquo;Start building your applications faster with contextual AI assistance and live preview.&rdquo;
+        </blockquote>
+        <cite>DevPilot Autonomous Engineering Workspace</cite>
+
+        <div class="auth-features-list">
+          <div class="auth-feature-item">
+            <svg class="icon icon-sm text-accent" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Instant workspace bootstrapping from starter templates</span>
+          </div>
+          <div class="auth-feature-item">
+            <svg class="icon icon-sm text-accent" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Real-time AST code assistance and safe unified diff review</span>
+          </div>
+          <div class="auth-feature-item">
+            <svg class="icon icon-sm text-accent" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>Zero configuration isolated execution terminal</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-xs text-muted">
+        &copy; 2026 DevPilot AI. All rights reserved.
+      </div>
+    </aside>
+
+    <!-- Form Side Column -->
+    <main class="auth-form-container">
+      <div class="auth-header">
+        <h1 class="auth-title">Create your workspace</h1>
+        <p class="auth-subtitle">Join DevPilot to build, debug and deploy your projects</p>
+      </div>
+
+      <!-- Registration Form -->
+      <form id="register-form" novalidate>
+        <div class="form-group">
+          <label for="full-name" class="form-label">Full Name</label>
+          <input type="text" id="full-name" class="form-control" placeholder="Jane Doe" required autocomplete="name">
+          <div class="form-error" id="name-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address</label>
+          <input type="email" id="email" class="form-control" placeholder="developer@example.com" required autocomplete="email">
+          <div class="form-error" id="email-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" id="password" class="form-control" placeholder="Minimum 8 characters" required autocomplete="new-password">
+          <div class="strength-meter" id="strength-meter">
+            <div class="strength-bars">
+              <span class="strength-bar"></span>
+              <span class="strength-bar"></span>
+              <span class="strength-bar"></span>
+            </div>
+            <span class="strength-text" id="strength-text">Enter password</span>
+          </div>
+          <div class="form-error" id="password-error"></div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm-password" class="form-label">Confirm Password</label>
+          <input type="password" id="confirm-password" class="form-control" placeholder="Repeat your password" required autocomplete="new-password">
+          <div class="form-error" id="confirm-password-error"></div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: var(--space-6);">
+          <label class="flex items-center gap-2" style="cursor: pointer;">
+            <input type="checkbox" id="terms" style="accent-color: var(--color-primary);">
+            <span class="text-xs text-secondary">I agree to the Terms of Service and Privacy Policy</span>
+          </label>
+          <div class="form-error" id="terms-error"></div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="register-submit-btn" style="width: 100%;">
+          Create Account
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Already have an account? <a href="login.html" class="text-accent font-medium">Sign in</a>
+      </div>
+    </main>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Scripts -->
+  <script type="module" src="js/navigation.js"></script>
+  <script type="module" src="js/register.js"></script>
+</body>
+</html>
