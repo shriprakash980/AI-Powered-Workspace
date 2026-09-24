@@ -942,3 +942,265 @@
     display: none;
   }
 }
+
+/* ==========================================================================
+   Phase 9: AI Context Engine, Monaco Diff Editor & File Versioning Styles
+   ========================================================================== */
+
+/* Monaco Diff Review Banner */
+.diff-review-banner {
+  background-color: #161b22;
+  border-bottom: 1px solid var(--color-border);
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+}
+
+.diff-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.diff-mode-badge {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.5px;
+}
+
+.diff-filename {
+  font-family: var(--font-family-mono);
+  font-size: 0.8rem;
+  color: var(--color-text-primary);
+}
+
+.diff-banner-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Context Engine Preview Modal */
+.context-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.context-stat-card {
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.context-stat-num {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.context-stat-lbl {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+}
+
+.context-files-list {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-primary);
+}
+
+.context-file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: 0.8rem;
+}
+
+.context-file-item:last-child {
+  border-bottom: none;
+}
+
+.context-file-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.context-score-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background-color: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.context-file-path {
+  font-family: var(--font-family-mono);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.context-file-reason {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+/* Changeset Files Table */
+.changeset-files-table-wrapper {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.changeset-files-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.changeset-files-table th {
+  background-color: var(--color-bg-primary);
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+}
+
+.changeset-files-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.operation-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  text-transform: uppercase;
+}
+
+.operation-badge.create {
+  background-color: rgba(35, 134, 54, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(35, 134, 54, 0.4);
+}
+
+.operation-badge.update {
+  background-color: rgba(56, 189, 248, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.operation-badge.delete {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.operation-badge.rename {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+  border: 1px solid rgba(234, 179, 8, 0.4);
+}
+
+.diff-stat-add {
+  color: #4ade80;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.diff-stat-del {
+  color: #f87171;
+  font-weight: 600;
+}
+
+/* File Version Timeline */
+.version-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.version-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast);
+}
+
+.version-card:hover {
+  border-color: var(--color-primary);
+}
+
+.version-info-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.version-tag {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--color-primary);
+}
+
+.version-source-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  text-transform: uppercase;
+}
+
+.version-source-badge.manual {
+  background-color: var(--color-surface-active);
+  color: var(--color-text-muted);
+}
+
+.version-source-badge.ai {
+  background-color: rgba(99, 102, 241, 0.2);
+  color: #818cf8;
+}
+
+.version-source-badge.rollback {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+}
+
+.version-meta {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+

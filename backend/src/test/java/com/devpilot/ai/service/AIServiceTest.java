@@ -59,6 +59,9 @@ class AIServiceTest {
     @Mock
     private AIProvider mockProvider;
 
+    @Mock
+    private com.devpilot.ai.context.ContextService contextService;
+
     private AIService aiService;
     private UserPrincipal userPrincipal;
     private UUID userId;
@@ -86,7 +89,8 @@ class AIServiceTest {
                 requestLogRepository,
                 projectRepository,
                 fileRepository,
-                objectMapper
+                objectMapper,
+                contextService
         );
     }
 

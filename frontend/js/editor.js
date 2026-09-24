@@ -491,3 +491,119 @@ export function replaceSelectedText(replacement) {
   return false;
 }
 
+// ==========================================
+// Monaco DiffEditor Support (Phase 9)
+// ==========================================
+
+let diffEditor = null;
+let diffOriginalModel = null;
+let diffModifiedModel = null;
+let isDiffMode = false;
+let diffContainerEl = null;
+let originalEditorContainerEl = null;
+
+export function initializeDiffContainer(diffContainer, editorContainer) {
+  diffContainerEl = diffContainer;
+  originalEditorContainerEl = editorContainer;
+}
+
+export function showDiff(originalContent, modifiedContent, language = 'plaintext', fileName = '') {
+  if (!diffContainerEl || !originalEditorContainerEl) {
+    diffContainerEl = document.getElementById('diff-editor-container');
+    originalEditorContainerEl = document.getElementById('editor-container');
+  }
+
+  if (!window.monaco || !diffContainerEl) {
+    console.warn('[DevPilot Diff] Monaco editor or diff container not available');
+    return false;
+  }
+
+  hideDiff(); // Clean previous diff if any
+
+  if (originalEditorContainerEl) {
+    originalEditorContainerEl.style.display = 'none';
+  }
+  if (diffContainerEl) {
+    diffContainerEl.style.display = 'block';
+  }
+
+  const diffBanner = document.getElementById('diff-review-banner');
+  if (diffBanner) {
+    diffBanner.style.display = 'flex';
+  }
+
+  const theme = storage.getTheme() === 'light' ? 'vs' : 'vs-dark';
+  const prefs = storage.getEditorPreferences();
+
+  diffEditor = window.monaco.editor.createDiffEditor(diffContainerEl, {
+    theme: theme,
+    fontSize: prefs.fontSize || 14,
+    readOnly: true,
+    originalEditable: false,
+    renderSideBySide: true,
+    automaticLayout: true,
+    fontFamily: "'JetBrains Mono', 'Fira Code', Consolas, monospace",
+    smoothScrolling: true,
+    lineNumbers: 'on',
+    scrollBeyondLastLine: false
+  });
+
+  const lang = detectLanguage(fileName || language);
+  diffOriginalModel = window.monaco.editor.createModel(originalContent || '', lang);
+  diffModifiedModel = window.monaco.editor.createModel(modifiedContent || '', lang);
+
+  diffEditor.setModel({
+    original: diffOriginalModel,
+    modified: diffModifiedModel
+  });
+
+  isDiffMode = true;
+  return true;
+}
+
+export function hideDiff() {
+  if (diffEditor) {
+    diffEditor.dispose();
+    diffEditor = null;
+  }
+  if (diffOriginalModel) {
+    diffOriginalModel.dispose();
+    diffOriginalModel = null;
+  }
+  if (diffModifiedModel) {
+    diffModifiedModel.dispose();
+    diffModifiedModel = null;
+  }
+
+  if (diffContainerEl) {
+    diffContainerEl.style.display = 'none';
+    diffContainerEl.innerHTML = '';
+  }
+  if (originalEditorContainerEl) {
+    originalEditorContainerEl.style.display = 'block';
+  }
+
+  const diffBanner = document.getElementById('diff-review-banner');
+  if (diffBanner) {
+    diffBanner.style.display = 'none';
+  }
+
+  isDiffMode = false;
+  if (editor) {
+    editor.layout();
+  }
+}
+
+export function toggleDiffSideBySide() {
+  if (diffEditor) {
+    const isSide = diffEditor._options.renderSideBySide !== false;
+    diffEditor.updateOptions({
+      renderSideBySide: !isSide
+    });
+  }
+}
+
+export function isDiffActive() {
+  return isDiffMode;
+}
+

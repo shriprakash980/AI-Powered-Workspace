@@ -1376,6 +1376,12 @@ function initAIAssistant() {
     },
     getProjectId: () => {
       return workspaceState.projectId;
+    },
+    openFile: (fileId) => {
+      openFile(fileId);
+    },
+    refreshExplorer: () => {
+      loadTree();
     }
   });
 }

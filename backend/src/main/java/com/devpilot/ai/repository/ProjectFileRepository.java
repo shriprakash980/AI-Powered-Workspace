@@ -30,5 +30,7 @@ public interface ProjectFileRepository extends JpaRepository<ProjectFile, UUID> 
 
     long countByProjectId(UUID projectId);
 
+    List<ProjectFile> findByProjectIdAndIsDirectoryFalse(UUID projectId);
+
     List<ProjectFile> findTop10ByProjectIdAndIsDirectoryFalseOrderByUpdatedAtDesc(UUID projectId);
 }

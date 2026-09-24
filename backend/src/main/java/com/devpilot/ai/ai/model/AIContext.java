@@ -13,7 +13,17 @@ public class AIContext {
     private String instruction;
     private String userPrompt;
 
+    private String projectContext;
+
     public AIContext() {}
+
+    public String getProjectContext() {
+        return projectContext;
+    }
+
+    public void setProjectContext(String projectContext) {
+        this.projectContext = projectContext;
+    }
 
     public UUID getProjectId() {
         return projectId;

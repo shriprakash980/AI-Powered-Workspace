@@ -6,6 +6,7 @@
 import { apiRequest } from './api.js';
 import { storage } from './storage.js';
 import { showToast, escapeHtml } from './utils.js';
+import { showDiff, hideDiff, toggleDiffSideBySide } from './editor.js';
 
 let providersData = null;
 let activeConversationId = null;
@@ -21,6 +22,7 @@ export async function initAI(bridge) {
   editorBridge = bridge;
 
   bindElements();
+  initPhase9Features();
   await loadProviders();
   await loadConversations();
   updateContextBadge();
@@ -660,5 +662,333 @@ function scrollToBottom() {
   const box = document.getElementById('ai-messages-container');
   if (box) {
     box.scrollTop = box.scrollHeight;
+  }
+}
+
+// ==========================================================================
+// Phase 9: AI Context Engine, Changeset Review & Version History UI
+// ==========================================================================
+
+let activeReviewChangeset = null;
+
+function initPhase9Features() {
+  // Context Preview Modal bindings
+  const aiCtxBtn = document.getElementById('ai-context-btn');
+  const statusCtxBtn = document.getElementById('status-context-btn');
+  const ctxModal = document.getElementById('context-preview-modal');
+  const ctxCloseBtn = document.getElementById('context-modal-close-btn');
+  const ctxOkBtn = document.getElementById('context-modal-ok-btn');
+
+  const openContext = () => openContextPreviewModal();
+  if (aiCtxBtn) aiCtxBtn.addEventListener('click', openContext);
+  if (statusCtxBtn) statusCtxBtn.addEventListener('click', openContext);
+  if (ctxCloseBtn) ctxCloseBtn.addEventListener('click', () => { if (ctxModal) ctxModal.style.display = 'none'; });
+  if (ctxOkBtn) ctxOkBtn.addEventListener('click', () => { if (ctxModal) ctxModal.style.display = 'none'; });
+
+  // Changeset Review Modal bindings
+  const aiChangesetsBtn = document.getElementById('ai-changesets-btn');
+  const csModal = document.getElementById('changeset-review-modal');
+  const csCloseBtn = document.getElementById('changeset-modal-close-btn');
+  const csCancelBtn = document.getElementById('changeset-cancel-btn');
+  const csApplyBtn = document.getElementById('changeset-apply-selected-btn');
+  const csRejectBtn = document.getElementById('changeset-reject-btn');
+  const csSelectAll = document.getElementById('changeset-select-all');
+
+  if (aiChangesetsBtn) aiChangesetsBtn.addEventListener('click', () => openLatestChangesetModal());
+  if (csCloseBtn) csCloseBtn.addEventListener('click', () => { if (csModal) csModal.style.display = 'none'; });
+  if (csCancelBtn) csCancelBtn.addEventListener('click', () => { if (csModal) csModal.style.display = 'none'; });
+  if (csSelectAll) {
+    csSelectAll.addEventListener('change', (e) => {
+      const cbs = document.querySelectorAll('.changeset-file-cb');
+      cbs.forEach(cb => { cb.checked = e.target.checked; });
+    });
+  }
+  if (csApplyBtn) csApplyBtn.addEventListener('click', () => handleApplyChangeset());
+  if (csRejectBtn) csRejectBtn.addEventListener('click', () => handleRejectChangeset());
+
+  // Version History Modal bindings
+  const statusHistoryBtn = document.getElementById('status-history-btn');
+  const verModal = document.getElementById('file-version-modal');
+  const verCloseBtn = document.getElementById('version-modal-close-btn');
+  const verOkBtn = document.getElementById('version-modal-ok-btn');
+
+  if (statusHistoryBtn) statusHistoryBtn.addEventListener('click', () => openVersionHistoryModal());
+  if (verCloseBtn) verCloseBtn.addEventListener('click', () => { if (verModal) verModal.style.display = 'none'; });
+  if (verOkBtn) verOkBtn.addEventListener('click', () => { if (verModal) verModal.style.display = 'none'; });
+
+  // Diff Mode Banner bindings
+  const diffToggleBtn = document.getElementById('diff-toggle-mode-btn');
+  const diffExitBtn = document.getElementById('diff-exit-btn');
+  if (diffToggleBtn) diffToggleBtn.addEventListener('click', () => toggleDiffSideBySide());
+  if (diffExitBtn) diffExitBtn.addEventListener('click', () => hideDiff());
+}
+
+async function openContextPreviewModal() {
+  const modal = document.getElementById('context-preview-modal');
+  const projectId = editorBridge?.getProjectId ? editorBridge.getProjectId() : null;
+  if (!projectId) {
+    showToast('No Project Selected', 'Open a project to preview workspace context.', 'warning');
+    return;
+  }
+
+  const activeFile = editorBridge?.getActiveFile ? editorBridge.getActiveFile() : null;
+  const selectedCode = editorBridge?.getSelectedCode ? editorBridge.getSelectedCode() : null;
+  const inputEl = document.getElementById('ai-input-box');
+  const query = inputEl ? inputEl.value.trim() : '';
+
+  try {
+    const res = await apiRequest('/ai/context/preview', {
+      method: 'POST',
+      body: JSON.stringify({
+        projectId,
+        fileId: activeFile ? activeFile.id : null,
+        selectedCode: selectedCode || null,
+        query: query || null
+      })
+    });
+
+    const data = res.data;
+    const statFiles = document.getElementById('ctx-stat-files');
+    const statTokens = document.getElementById('ctx-stat-tokens');
+    const statChars = document.getElementById('ctx-stat-chars');
+    const listEl = document.getElementById('context-files-list');
+
+    if (statFiles) statFiles.textContent = `${data.selectedFiles?.length || 0} / ${data.totalProjectFiles || 0}`;
+    if (statTokens) statTokens.textContent = data.estimatedTokens || 0;
+    if (statChars) statChars.textContent = data.totalCharactersUsed || 0;
+
+    if (listEl) {
+      listEl.innerHTML = '';
+      if (!data.selectedFiles || data.selectedFiles.length === 0) {
+        listEl.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--color-text-muted);">No relevant files scored for context.</div>';
+      } else {
+        data.selectedFiles.forEach(f => {
+          const item = document.createElement('div');
+          item.className = 'context-file-item';
+          item.innerHTML = `
+            <div class="context-file-item-left">
+              <span class="context-score-badge">+${f.score}</span>
+              <span class="context-file-path">${escapeHtml(f.path)}</span>
+            </div>
+            <span class="context-file-reason">${escapeHtml(f.reason || '')}</span>
+          `;
+          listEl.appendChild(item);
+        });
+      }
+    }
+
+    if (modal) modal.style.display = 'flex';
+  } catch (err) {
+    showToast('Context Preview Failed', err.message, 'error');
+  }
+}
+
+async function openLatestChangesetModal() {
+  const projectId = editorBridge?.getProjectId ? editorBridge.getProjectId() : null;
+  if (!projectId) {
+    showToast('No Project Selected', 'Open a project to view changesets.', 'warning');
+    return;
+  }
+
+  try {
+    const res = await apiRequest(`/projects/${projectId}/changesets`);
+    const list = res.data || [];
+    if (list.length === 0) {
+      showToast('No Changesets', 'There are no AI proposed changesets for this project yet.', 'info');
+      return;
+    }
+
+    // Default to the newest changeset
+    const cs = list[0];
+    renderChangesetModal(cs);
+  } catch (err) {
+    showToast('Failed to Load Changesets', err.message, 'error');
+  }
+}
+
+export function renderChangesetModal(cs) {
+  activeReviewChangeset = cs;
+  const modal = document.getElementById('changeset-review-modal');
+  const title = document.getElementById('changeset-modal-title');
+  const status = document.getElementById('changeset-modal-status');
+  const summary = document.getElementById('changeset-modal-summary');
+  const tbody = document.getElementById('changeset-files-tbody');
+
+  if (title) title.textContent = `Review Changeset: ${cs.summary || 'AI Proposed Edits'}`;
+  if (status) {
+    status.textContent = cs.status || 'PROPOSED';
+    status.className = `badge badge-${cs.status === 'APPLIED' ? 'success' : (cs.status === 'REJECTED' ? 'neutral' : 'primary')}`;
+  }
+  if (summary) summary.textContent = `Proposed ${cs.filesCount || cs.files?.length || 0} file modification(s). Check files to review diffs and apply:`;
+
+  if (tbody) {
+    tbody.innerHTML = '';
+    (cs.files || []).forEach(f => {
+      const tr = document.createElement('tr');
+      const op = (f.operation || 'UPDATE').toLowerCase();
+      tr.innerHTML = `
+        <td><input type="checkbox" class="changeset-file-cb" value="${f.id}" checked></td>
+        <td><code>${escapeHtml(f.newPath || f.oldPath || 'unknown')}</code></td>
+        <td><span class="operation-badge ${op}">${escapeHtml(op)}</span></td>
+        <td><span class="diff-stat-add">+${f.additions || 0}</span> <span class="diff-stat-del">-${f.deletions || 0}</span></td>
+        <td><button class="btn btn-xs btn-secondary btn-inspect-diff" data-file-id="${f.id}">Inspect Diff</button></td>
+      `;
+
+      const inspectBtn = tr.querySelector('.btn-inspect-diff');
+      if (inspectBtn) {
+        inspectBtn.addEventListener('click', () => {
+          if (modal) modal.style.display = 'none';
+          const targetPath = f.newPath || f.oldPath || 'file';
+          const bannerFileName = document.getElementById('diff-banner-filename');
+          if (bannerFileName) {
+            bannerFileName.textContent = `${targetPath} (${op.toUpperCase()}) — Original vs Proposed`;
+          }
+          showDiff(f.originalContent || '', f.proposedContent || '', null, targetPath);
+          showToast('Diff Review Active', `Viewing side-by-side comparison for ${targetPath}.`, 'info');
+        });
+      }
+
+      tbody.appendChild(tr);
+    });
+  }
+
+  if (modal) modal.style.display = 'flex';
+}
+
+async function handleApplyChangeset() {
+  if (!activeReviewChangeset) return;
+  const projectId = editorBridge?.getProjectId ? editorBridge.getProjectId() : null;
+  const cbs = document.querySelectorAll('.changeset-file-cb:checked');
+  const selectedIds = Array.from(cbs).map(cb => cb.value);
+
+  if (selectedIds.length === 0) {
+    showToast('No Files Selected', 'Please select at least one file to apply.', 'warning');
+    return;
+  }
+
+  try {
+    const res = await apiRequest(`/projects/${projectId}/changesets/${activeReviewChangeset.id}/apply`, {
+      method: 'POST',
+      body: JSON.stringify({ fileChangeIds: selectedIds })
+    });
+
+    showToast('Changes Applied', `Successfully applied ${selectedIds.length} file change(s).`, 'success');
+    const modal = document.getElementById('changeset-review-modal');
+    if (modal) modal.style.display = 'none';
+    hideDiff();
+
+    if (editorBridge?.refreshExplorer) editorBridge.refreshExplorer();
+    const activeFile = editorBridge?.getActiveFile ? editorBridge.getActiveFile() : null;
+    if (activeFile && editorBridge?.openFile) {
+      editorBridge.openFile(activeFile.id);
+    }
+  } catch (err) {
+    if (err.status === 409 || err.data?.errorCode === 'CONCURRENCY_CONFLICT') {
+      showToast('Concurrency Conflict (409)', err.message || 'File has been modified since changeset was proposed. Application aborted.', 'error');
+    } else {
+      showToast('Apply Failed', err.message, 'error');
+    }
+  }
+}
+
+async function handleRejectChangeset() {
+  if (!activeReviewChangeset) return;
+  const projectId = editorBridge?.getProjectId ? editorBridge.getProjectId() : null;
+
+  try {
+    await apiRequest(`/projects/${projectId}/changesets/${activeReviewChangeset.id}/reject`, {
+      method: 'POST'
+    });
+    showToast('Changeset Rejected', 'Proposed changes were discarded.', 'info');
+    const modal = document.getElementById('changeset-review-modal');
+    if (modal) modal.style.display = 'none';
+  } catch (err) {
+    showToast('Reject Failed', err.message, 'error');
+  }
+}
+
+async function openVersionHistoryModal() {
+  const projectId = editorBridge?.getProjectId ? editorBridge.getProjectId() : null;
+  const activeFile = editorBridge?.getActiveFile ? editorBridge.getActiveFile() : null;
+
+  if (!projectId || !activeFile) {
+    showToast('No File Open', 'Please open a file to view its version history.', 'warning');
+    return;
+  }
+
+  const modal = document.getElementById('file-version-modal');
+  const pathLabel = document.getElementById('version-file-path');
+  const listEl = document.getElementById('version-history-list');
+
+  if (pathLabel) pathLabel.textContent = activeFile.path || activeFile.name;
+
+  try {
+    const res = await apiRequest(`/projects/${projectId}/files/${activeFile.id}/versions`);
+    const versions = res.data || [];
+
+    if (listEl) {
+      listEl.innerHTML = '';
+      if (versions.length === 0) {
+        listEl.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--color-text-muted);">No version snapshots recorded yet. Versions are created on manual saves, AI patches, and rollbacks.</div>';
+      } else {
+        versions.forEach(v => {
+          const card = document.createElement('div');
+          card.className = 'version-card';
+          const src = (v.source || 'MANUAL').toLowerCase();
+          const dateStr = v.createdAt ? new Date(v.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+
+          card.innerHTML = `
+            <div class="version-info-left">
+              <span class="version-tag">v${v.versionNumber}</span>
+              <span class="version-source-badge ${src}">${escapeHtml(src)}</span>
+              <span class="version-meta">${dateStr}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="btn btn-xs btn-secondary btn-version-diff" data-v="${v.versionNumber}">Diff with Current</button>
+              <button class="btn btn-xs btn-primary btn-version-restore" data-id="${v.id}" data-v="${v.versionNumber}">Restore</button>
+            </div>
+          `;
+
+          const diffBtn = card.querySelector('.btn-version-diff');
+          if (diffBtn) {
+            diffBtn.addEventListener('click', () => {
+              if (modal) modal.style.display = 'none';
+              const bannerFileName = document.getElementById('diff-banner-filename');
+              if (bannerFileName) {
+                bannerFileName.textContent = `${activeFile.path} (v${v.versionNumber} vs Current)`;
+              }
+              showDiff(v.content || '', activeFile.content || '', null, activeFile.path);
+              showToast('Version Diff Active', `Comparing snapshot v${v.versionNumber} with current editor content.`, 'info');
+            });
+          }
+
+          const restoreBtn = card.querySelector('.btn-version-restore');
+          if (restoreBtn) {
+            restoreBtn.addEventListener('click', async () => {
+              if (confirm(`Restore ${activeFile.name} to version v${v.versionNumber}? A rollback snapshot will be recorded.`)) {
+                try {
+                  await apiRequest(`/projects/${projectId}/files/${activeFile.id}/versions/${v.id}/restore`, {
+                    method: 'POST'
+                  });
+                  showToast('Version Restored', `File restored to version v${v.versionNumber}.`, 'success');
+                  if (modal) modal.style.display = 'none';
+                  if (editorBridge?.openFile) {
+                    editorBridge.openFile(activeFile.id);
+                  }
+                } catch (rErr) {
+                  showToast('Restore Failed', rErr.message, 'error');
+                }
+              }
+            });
+          }
+
+          listEl.appendChild(card);
+        });
+      }
+    }
+
+    if (modal) modal.style.display = 'flex';
+  } catch (err) {
+    showToast('Failed to Load Versions', err.message, 'error');
   }
 }

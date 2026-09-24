@@ -41,6 +41,7 @@ public class AIService {
     private final ProjectRepository projectRepository;
     private final ProjectFileRepository fileRepository;
     private final ObjectMapper objectMapper;
+    private final com.devpilot.ai.context.ContextService contextService;
 
     public AIService(AIProviderFactory providerFactory,
                      AIContextBuilder contextBuilder,
@@ -49,7 +50,8 @@ public class AIService {
                      AIRequestLogRepository requestLogRepository,
                      ProjectRepository projectRepository,
                      ProjectFileRepository fileRepository,
-                     ObjectMapper objectMapper) {
+                     ObjectMapper objectMapper,
+                     com.devpilot.ai.context.ContextService contextService) {
         this.providerFactory = providerFactory;
         this.contextBuilder = contextBuilder;
         this.conversationRepository = conversationRepository;
@@ -58,6 +60,7 @@ public class AIService {
         this.projectRepository = projectRepository;
         this.fileRepository = fileRepository;
         this.objectMapper = objectMapper;
+        this.contextService = contextService;
     }
 
     public AIChatResponse chat(UserPrincipal userPrincipal, AIChatRequest request) {
@@ -90,6 +93,23 @@ public class AIService {
                 null,
                 request.getMessage()
         );
+
+        if (project != null) {
+            try {
+                String projectCtx = contextService.buildContextForPrompt(
+                        project.getId(),
+                        activeFile != null ? activeFile.getId() : null,
+                        request.getSelectedCode(),
+                        null,
+                        null,
+                        request.getMessage(),
+                        userPrincipal
+                );
+                ctx.setProjectContext(projectCtx);
+            } catch (Exception e) {
+                log.warn("Could not enrich project context for chat: {}", e.getMessage());
+            }
+        }
 
         String systemPrompt = PromptTemplates.buildChatSystemPrompt(ctx);
 
@@ -181,6 +201,23 @@ public class AIService {
                 null,
                 request.getMessage()
         );
+
+        if (project != null) {
+            try {
+                String projectCtx = contextService.buildContextForPrompt(
+                        project.getId(),
+                        activeFile != null ? activeFile.getId() : null,
+                        request.getSelectedCode(),
+                        null,
+                        null,
+                        request.getMessage(),
+                        userPrincipal
+                );
+                ctx.setProjectContext(projectCtx);
+            } catch (Exception e) {
+                log.warn("Could not enrich project context for chat stream: {}", e.getMessage());
+            }
+        }
 
         String systemPrompt = PromptTemplates.buildChatSystemPrompt(ctx);
         List<ChatMessage> chatMessages = new ArrayList<>();
@@ -307,6 +344,23 @@ public class AIService {
                 request.getInstruction(),
                 null
         );
+
+        if (project != null) {
+            try {
+                String projectCtx = contextService.buildContextForPrompt(
+                        project.getId(),
+                        file != null ? file.getId() : null,
+                        request.getSelectedCode(),
+                        null,
+                        null,
+                        request.getInstruction(),
+                        userPrincipal
+                );
+                ctx.setProjectContext(projectCtx);
+            } catch (Exception e) {
+                log.warn("Could not enrich project context for code action: {}", e.getMessage());
+            }
+        }
 
         String prompt = PromptTemplates.buildCodeActionPrompt(action, ctx);
         String providerName = (request.getProvider() != null && !request.getProvider().isBlank()) ? request.getProvider() : null;

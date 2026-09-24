@@ -37,6 +37,9 @@ public final class PromptTemplates {
                 sb.append("\n- Active File Context:\n```").append(ctx.getLanguage() != null ? ctx.getLanguage() : "")
                   .append("\n").append(ctx.getFileContent()).append("\n```");
             }
+            if (ctx.getProjectContext() != null && !ctx.getProjectContext().isBlank()) {
+                sb.append("\n\n").append(ctx.getProjectContext());
+            }
         }
         return sb.toString();
     }

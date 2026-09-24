@@ -1,6 +1,8 @@
 package com.devpilot.ai.exception;
 
+import com.devpilot.ai.context.ContextException;
 import com.devpilot.ai.dto.ErrorResponse;
+import com.devpilot.ai.patch.PatchConflictException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,35 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(PatchConflictException.class)
+    public ResponseEntity<ErrorResponse> handlePatchConflictException(PatchConflictException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .success(false)
+                .message(ex.getMessage())
+                .errorCode("CONCURRENCY_CONFLICT")
+                .conflict(ex.getConflict())
+                .path(request.getRequestURI())
+                .timestamp(Instant.now().toString())
+                .build();
+
+        log.warn("Patch concurrency conflict on path {}: {}", request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
+
+    @ExceptionHandler(ContextException.class)
+    public ResponseEntity<ErrorResponse> handleContextException(ContextException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .success(false)
+                .message(ex.getMessage())
+                .errorCode(ex.getErrorCode())
+                .path(request.getRequestURI())
+                .timestamp(Instant.now().toString())
+                .build();
+
+        log.warn("Context exception on path {}: [{}] {}", request.getRequestURI(), ex.getErrorCode(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex, HttpServletRequest request) {
