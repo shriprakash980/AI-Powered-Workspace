@@ -13,5 +13,6 @@ import java.util.UUID;
 public interface ProjectRepository extends JpaRepository<Project, UUID> {
     List<Project> findByStatus(ProjectStatus status);
     List<Project> findByOwnerId(UUID ownerId);
+    List<Project> findByOwnerIdAndStatusNot(UUID ownerId, ProjectStatus status);
     Optional<Project> findByIdAndStatusNot(UUID id, ProjectStatus status);
 }

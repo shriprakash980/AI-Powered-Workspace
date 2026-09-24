@@ -5,11 +5,14 @@
 import { storage } from './storage.js';
 
 export function initNavigation() {
-  // 1. Initialize Theme from Storage
+  // 1. Enforce Protected Route Guard
+  checkAuthGuard();
+
+  // 2. Initialize Theme from Storage
   const currentTheme = storage.getTheme();
   document.documentElement.setAttribute('data-theme', currentTheme);
 
-  // 2. Setup Theme Toggle Triggers
+  // 3. Setup Theme Toggle Triggers
   const themeToggles = document.querySelectorAll('[data-theme-toggle]');
   themeToggles.forEach(toggle => {
     toggle.addEventListener('click', () => {
@@ -21,7 +24,7 @@ export function initNavigation() {
   });
   updateThemeIcons(currentTheme);
 
-  // 3. Mobile Navbar Menu Toggle
+  // 4. Mobile Navbar Menu Toggle
   const mobileToggle = document.querySelector('.mobile-nav-toggle');
   const mobileMenu = document.querySelector('.mobile-nav-menu');
   if (mobileToggle && mobileMenu) {
@@ -30,7 +33,7 @@ export function initNavigation() {
     });
   }
 
-  // 4. Dashboard / Shell Sidebar Toggle
+  // 5. Dashboard / Shell Sidebar Toggle
   const sidebar = document.querySelector('.sidebar');
   const sidebarToggles = document.querySelectorAll('[data-sidebar-toggle]');
   if (sidebar && sidebarToggles.length > 0) {
@@ -41,8 +44,28 @@ export function initNavigation() {
     });
   }
 
-  // 5. Highlight Active Route
+  // 6. Highlight Active Route
   highlightActiveLinks();
+
+  // 7. Wire global logout triggers if present
+  const logoutButtons = document.querySelectorAll('[data-action="logout"], #sidebar-logout-btn');
+  logoutButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      storage.clearAuth();
+      window.location.href = 'login.html';
+    });
+  });
+}
+
+function checkAuthGuard() {
+  const currentPath = window.location.pathname.split('/').pop() || '';
+  const protectedPages = ['dashboard.html', 'workspace.html', 'settings.html', 'profile.html'];
+
+  if (protectedPages.includes(currentPath) && !storage.isAuthenticated()) {
+    console.info('[DevPilot] Unauthenticated access to protected page. Redirecting to login.html');
+    window.location.href = 'login.html';
+  }
 }
 
 function updateThemeIcons(theme) {

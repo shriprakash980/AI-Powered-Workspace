@@ -42,6 +42,8 @@ app:
     allowed-origins: ${FRONTEND_URL:http://localhost:5500},http://localhost:3000,http://127.0.0.1:5500,http://127.0.0.1:3000
   security:
     jwt-secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    jwt-access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000} # 15 minutes in ms
+    jwt-refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000} # 7 days in ms
 
 # Spring Boot Actuator
 management:

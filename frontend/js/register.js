@@ -4,6 +4,7 @@
 
 import { showToast } from './utils.js';
 import { setButtonLoading } from './components.js';
+import { apiRequest } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const registerForm = document.getElementById('register-form');
@@ -47,18 +48,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 2. Form Submission & Comprehensive Validation
   if (registerForm) {
-    registerForm.addEventListener('submit', (e) => {
+    registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       let isValid = true;
-      const name = nameInput.value.trim();
+      const fullName = nameInput.value.trim();
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       const confirmPassword = confirmPasswordInput.value;
 
       // Validate Name
       const nameError = document.getElementById('name-error');
-      if (!name) {
+      if (!fullName) {
         setFieldError(nameInput, nameError, 'Full name is required');
         isValid = false;
       } else {
@@ -115,15 +116,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!isValid) return;
 
-      // Simulation for Phase 2
-      setButtonLoading(submitBtn, true, 'Creating Account...');
-      setTimeout(() => {
+      setButtonLoading(submitBtn, true, 'Creating Account in Database...');
+
+      try {
+        const response = await apiRequest('/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({ fullName, email, password })
+        });
+
+        if (response && response.success) {
+          showToast('Account Created!', 'Registration successful. Redirecting to sign in...', 'success');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 800);
+        } else {
+          throw new Error('Registration failed. Please try again.');
+        }
+      } catch (err) {
         setButtonLoading(submitBtn, false);
-        showToast('Account Created!', 'Your DevPilot workspace is ready. Redirecting to login...', 'success');
-        setTimeout(() => {
-          window.location.href = 'login.html';
-        }, 1200);
-      }, 1000);
+        const errMsg = err.message || 'An error occurred during registration.';
+        showToast('Registration Error', errMsg, 'error');
+        if (errMsg.toLowerCase().includes('email')) {
+          setFieldError(emailInput, emailError, errMsg);
+        }
+      }
     });
   }
 

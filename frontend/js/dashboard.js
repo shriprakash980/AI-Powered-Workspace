@@ -5,8 +5,9 @@
 import { showToast, formatDate, escapeHtml } from './utils.js';
 import { openModal, closeModal, setButtonLoading } from './components.js';
 import { apiRequest } from './api.js';
+import { storage } from './storage.js';
 
-// Structured state placeholder (Ready to be populated via API in Phase 3/4)
+// Structured state placeholder (populated via API)
 const state = {
   stats: {
     projects: 3,
@@ -52,12 +53,59 @@ const state = {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  // 1. Guard dashboard authentication
+  if (!storage.isAuthenticated()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // 2. Load User Profile and Dashboard Elements
+  loadUserProfile();
   renderStats();
   renderProjects(state.projects);
   renderActivities();
   setupEventListeners();
   loadProjectsFromApi();
 });
+
+/**
+ * Fetches current authenticated user profile
+ */
+async function loadUserProfile() {
+  const cachedUser = storage.getUser();
+  if (cachedUser) {
+    applyUserDataToUI(cachedUser);
+  }
+
+  try {
+    const response = await apiRequest('/auth/me');
+    if (response && response.data) {
+      storage.setUser(response.data);
+      applyUserDataToUI(response.data);
+    }
+  } catch (err) {
+    console.warn('[DevPilot] Could not refresh profile from /auth/me:', err.message);
+  }
+}
+
+function applyUserDataToUI(user) {
+  const nameEl = document.getElementById('sidebar-user-name');
+  const roleEl = document.getElementById('sidebar-user-role');
+  const avatarEl = document.getElementById('sidebar-user-avatar');
+  const welcomeTitle = document.querySelector('.welcome-title');
+
+  if (nameEl && user.fullName) nameEl.textContent = user.fullName;
+  if (roleEl && user.roles) {
+    roleEl.textContent = Array.isArray(user.roles) ? user.roles.join(', ') : 'Developer';
+  }
+  if (avatarEl && user.fullName) {
+    const initials = user.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    avatarEl.textContent = initials || 'DEV';
+  }
+  if (welcomeTitle && user.fullName) {
+    welcomeTitle.textContent = `Welcome back, ${escapeHtml(user.fullName)}`;
+  }
+}
 
 /**
  * Loads projects from Spring Boot backend REST API
@@ -73,7 +121,6 @@ async function loadProjectsFromApi() {
       renderProjects(state.projects);
     }
   } catch (err) {
-    // Graceful fallback to default seed/demo projects when backend is starting or offline
     console.info('[DevPilot] Backend offline or loading, using default local projects:', err.message);
   }
 }
@@ -123,12 +170,12 @@ function renderProjects(projectsList) {
         <div>
           <div class="project-card-header">
             <div class="project-brand">
-              <div class="project-lang-icon">${escapeHtml(project.language.slice(0, 2).toUpperCase())}</div>
+              <div class="project-lang-icon">${escapeHtml((project.language || 'JS').slice(0, 2).toUpperCase())}</div>
               <h3 class="project-name">${escapeHtml(project.name)}</h3>
             </div>
-            <span class="badge ${langBadgeClass}">${escapeHtml(project.language)}</span>
+            <span class="badge ${langBadgeClass}">${escapeHtml(project.language || 'JavaScript')}</span>
           </div>
-          <p class="project-desc">${escapeHtml(project.description)}</p>
+          <p class="project-desc">${escapeHtml(project.description || 'No description provided.')}</p>
         </div>
         <div class="project-footer">
           <span>Updated ${formatDate(project.updatedAt)}</span>
@@ -163,6 +210,29 @@ function renderActivities() {
  * UI Event Listeners
  */
 function setupEventListeners() {
+  // Logout Trigger
+  const logoutBtn = document.getElementById('sidebar-logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      try {
+        const refreshToken = storage.getRefreshToken();
+        await apiRequest('/auth/logout', {
+          method: 'POST',
+          body: JSON.stringify({ refreshToken })
+        });
+      } catch (err) {
+        console.warn('[DevPilot] Logout API notice:', err.message);
+      } finally {
+        storage.clearAuth();
+        showToast('Signed Out', 'You have been logged out safely.', 'info');
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 500);
+      }
+    });
+  }
+
   // Modal Triggers
   const openModalBtns = document.querySelectorAll('[data-open-create-modal]');
   openModalBtns.forEach(btn => {
@@ -176,8 +246,8 @@ function setupEventListeners() {
       const query = e.target.value.toLowerCase().trim();
       const filtered = state.projects.filter(p =>
         p.name.toLowerCase().includes(query) ||
-        p.description.toLowerCase().includes(query) ||
-        p.language.toLowerCase().includes(query)
+        (p.description && p.description.toLowerCase().includes(query)) ||
+        (p.language && p.language.toLowerCase().includes(query))
       );
       renderProjects(filtered);
     });
@@ -237,30 +307,9 @@ function setupEventListeners() {
 
         showToast('Project Created', `Project '${newProject.name}' saved to PostgreSQL database.`, 'success');
       } catch (err) {
-        // Fallback for offline mode or network error
-        console.warn('[DevPilot] API request failed, saving locally:', err.message);
-
-        const fallbackProject = {
-          id: `proj-${Date.now()}`,
-          name: name.toLowerCase().replace(/\s+/g, '-'),
-          description: descInput.value.trim() || 'No description provided.',
-          language: langSelect.value,
-          template: templateSelect.value,
-          status: 'ACTIVE',
-          updatedAt: new Date().toISOString()
-        };
-
-        state.projects.unshift(fallbackProject);
-        state.stats.projects = state.projects.length;
-        state.stats.activeProjects++;
-
-        renderStats();
-        renderProjects(state.projects);
         setButtonLoading(submitBtn, false);
-        closeModal('create-project-modal');
-        createForm.reset();
-
-        showToast('Project Created', `Project '${fallbackProject.name}' scaffolded (offline mode).`, 'info');
+        const errMsg = err.message || 'Failed to create project.';
+        showToast('Error', errMsg, 'error');
       }
     });
   }

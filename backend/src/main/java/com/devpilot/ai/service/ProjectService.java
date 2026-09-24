@@ -5,8 +5,10 @@ import com.devpilot.ai.dto.project.ProjectResponse;
 import com.devpilot.ai.entity.Project;
 import com.devpilot.ai.entity.enums.ProjectStatus;
 import com.devpilot.ai.exception.BadRequestException;
+import com.devpilot.ai.exception.ForbiddenException;
 import com.devpilot.ai.exception.ResourceNotFoundException;
 import com.devpilot.ai.repository.ProjectRepository;
+import com.devpilot.ai.security.UserPrincipal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,28 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
+    public List<ProjectResponse> getAllProjects(UserPrincipal userPrincipal) {
+        if (userPrincipal == null) {
+            return getAllProjects();
+        }
+        log.info("Fetching projects for user ID: {}", userPrincipal.getId());
+        boolean isAdmin = userPrincipal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        List<Project> projects;
+        if (isAdmin) {
+            projects = projectRepository.findByStatus(ProjectStatus.ACTIVE);
+        } else {
+            projects = projectRepository.findByOwnerIdAndStatusNot(userPrincipal.getId(), ProjectStatus.DELETED);
+        }
+
+        return projects.stream()
+                .map(this::mapToResponse)
+                .sorted(Comparator.comparing(ProjectResponse::getUpdatedAt).reversed())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<ProjectResponse> getAllProjects() {
         log.info("Fetching all active projects from PostgreSQL repository");
         return projectRepository.findByStatus(ProjectStatus.ACTIVE).stream()
@@ -39,17 +63,24 @@ public class ProjectService {
     }
 
     @Transactional(readOnly = true)
-    public ProjectResponse getProjectById(UUID id) {
+    public ProjectResponse getProjectById(UUID id, UserPrincipal userPrincipal) {
         log.info("Fetching project by id: {}", id);
         Project project = findActiveProjectOrThrow(id);
+        verifyOwnership(project, userPrincipal);
         return mapToResponse(project);
     }
 
-    public ProjectResponse createProject(ProjectRequest request) {
+    @Transactional(readOnly = true)
+    public ProjectResponse getProjectById(UUID id) {
+        return getProjectById(id, null);
+    }
+
+    public ProjectResponse createProject(ProjectRequest request, UserPrincipal userPrincipal) {
         validateProjectRequest(request);
 
         String trimmedName = request.getName().trim();
         Instant now = Instant.now();
+        UUID ownerId = userPrincipal != null ? userPrincipal.getId() : null;
 
         Project project = Project.builder()
                 .name(trimmedName)
@@ -58,18 +89,25 @@ public class ProjectService {
                 .language(request.getLanguage().trim())
                 .framework(request.getFramework() != null ? request.getFramework().trim() : null)
                 .status(ProjectStatus.ACTIVE)
+                .ownerId(ownerId)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();
 
         Project savedProject = projectRepository.save(project);
-        log.info("Project created successfully in PostgreSQL with ID: {} and Name: '{}'", savedProject.getId(), trimmedName);
+        log.info("Project created successfully in PostgreSQL with ID: {} and Name: '{}' (Owner: {})",
+                savedProject.getId(), trimmedName, ownerId);
         return mapToResponse(savedProject);
     }
 
-    public ProjectResponse updateProject(UUID id, ProjectRequest request) {
+    public ProjectResponse createProject(ProjectRequest request) {
+        return createProject(request, null);
+    }
+
+    public ProjectResponse updateProject(UUID id, ProjectRequest request, UserPrincipal userPrincipal) {
         validateProjectRequest(request);
         Project project = findActiveProjectOrThrow(id);
+        verifyOwnership(project, userPrincipal);
 
         project.setName(request.getName().trim());
         if (request.getDescription() != null) {
@@ -91,12 +129,38 @@ public class ProjectService {
         return mapToResponse(updatedProject);
     }
 
-    public void deleteProject(UUID id) {
+    public ProjectResponse updateProject(UUID id, ProjectRequest request) {
+        return updateProject(id, request, null);
+    }
+
+    public void deleteProject(UUID id, UserPrincipal userPrincipal) {
         Project project = findActiveProjectOrThrow(id);
+        verifyOwnership(project, userPrincipal);
+
         project.setStatus(ProjectStatus.DELETED);
         project.setUpdatedAt(Instant.now());
         projectRepository.save(project);
         log.info("Soft deleted project ID: {} in PostgreSQL", id);
+    }
+
+    public void deleteProject(UUID id) {
+        deleteProject(id, null);
+    }
+
+    private void verifyOwnership(Project project, UserPrincipal userPrincipal) {
+        if (userPrincipal == null) {
+            return;
+        }
+        boolean isAdmin = userPrincipal.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (isAdmin) {
+            return;
+        }
+
+        if (project.getOwnerId() != null && !project.getOwnerId().equals(userPrincipal.getId())) {
+            log.warn("Access denied: User ID {} does not own project ID {}", userPrincipal.getId(), project.getId());
+            throw new ForbiddenException("You do not have permission to access this project");
+        }
     }
 
     private Project findActiveProjectOrThrow(UUID id) {

@@ -18,50 +18,114 @@
 
 ## 2. API Endpoints Catalog
 
-### 2.1 Authentication & Security
-- `POST /api/v1/auth/register` — Create new user account.
-- `POST /api/v1/auth/login` — Authenticate credentials and issue JWT + Refresh Token.
-- `POST /api/v1/auth/refresh` — Issue fresh access token from valid refresh token.
-- `POST /api/v1/auth/logout` — Revoke active refresh token.
-- `GET  /api/v1/auth/me` — Retrieve current authenticated user profile.
+### 2.1 Authentication & Security (Phase 5 Implemented)
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `POST` | `/api/v1/auth/register` | Public | Register new user account with BCrypt password hashing and default `ROLE_USER`. |
+| `POST` | `/api/v1/auth/login` | Public | Authenticate email and password, issue short-lived JWT access token and refresh token. |
+| `POST` | `/api/v1/auth/refresh` | Public | Rotates refresh token and issues a fresh JWT access token. |
+| `POST` | `/api/v1/auth/logout` | Public/Auth | Revokes the active refresh token session. |
+| `GET` | `/api/v1/auth/me` | Authenticated | Retrieve current authenticated user profile and roles from JWT context. |
 
-### 2.2 Projects Management
-- `GET    /api/v1/projects` — List user's projects with filtering and pagination.
-- `POST   /api/v1/projects` — Initialize a new project with starter template.
-- `GET    /api/v1/projects/{id}` — Get project metadata by ID.
-- `PUT    /api/v1/projects/{id}` — Update project name or description.
-- `DELETE /api/v1/projects/{id}` — Soft delete / archive project.
+#### Request & Response Details:
 
-### 2.3 Files & Folders
+##### `POST /api/v1/auth/register`
+* **Request:**
+```json
+{
+  "fullName": "Jane Developer",
+  "email": "jane@devpilot.ai",
+  "password": "SecurePassword123!"
+}
+```
+* **Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "fullName": "Jane Developer",
+    "email": "jane@devpilot.ai",
+    "roles": ["USER"],
+    "status": "ACTIVE",
+    "createdAt": "2026-09-24T12:00:00Z",
+    "updatedAt": "2026-09-24T12:00:00Z"
+  }
+}
+```
+
+##### `POST /api/v1/auth/login`
+* **Request:**
+```json
+{
+  "email": "jane@devpilot.ai",
+  "password": "SecurePassword123!"
+}
+```
+* **Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "tokenType": "Bearer",
+    "expiresIn": 900,
+    "refreshToken": "xK8qV_9Pz1b3N...",
+    "user": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "fullName": "Jane Developer",
+      "email": "jane@devpilot.ai",
+      "roles": ["USER"]
+    }
+  }
+}
+```
+
+##### `POST /api/v1/auth/refresh`
+* **Request:**
+```json
+{
+  "refreshToken": "xK8qV_9Pz1b3N..."
+}
+```
+* **Response (200 OK):** Returns new `accessToken` and rotated new `refreshToken`.
+
+##### `GET /api/v1/auth/me`
+* **Headers:** `Authorization: Bearer <access_token>`
+* **Response (200 OK):** Returns current user details.
+
+---
+
+### 2.2 Role-Based Administration (Phase 5 Implemented)
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/admin/test` | `ROLE_ADMIN` | Verification endpoint returning 200 for admins and 403 Forbidden for regular users. |
+
+---
+
+### 2.3 Projects Management (Phase 4 & 5 Protected)
+| Method | Endpoint | Access | Description |
+|---|---|---|---|
+| `GET` | `/api/v1/projects` | Authenticated | Lists active projects owned by the requesting user. |
+| `POST` | `/api/v1/projects` | Authenticated | Creates a new workspace project, automatically assigning `ownerId`. |
+| `GET` | `/api/v1/projects/{id}` | Authenticated | Retrieves project if owned by user (otherwise 403 Forbidden). |
+| `PUT` | `/api/v1/projects/{id}` | Authenticated | Updates project configuration if owned by user. |
+| `DELETE` | `/api/v1/projects/{id}` | Authenticated | Soft deletes project if owned by user. |
+
+---
+
+### 2.4 Files & Folders (Scheduled for Phase 6)
 - `GET    /api/v1/projects/{id}/tree` — Retrieve full hierarchical directory tree.
 - `POST   /api/v1/projects/{id}/files` — Create new file in project.
 - `GET    /api/v1/files/{fileId}` — Fetch raw file content and metadata.
 - `PUT    /api/v1/files/{fileId}` — Save file content.
 - `DELETE /api/v1/files/{fileId}` — Remove file from project.
-- `POST   /api/v1/projects/{id}/folders` — Create new folder in project.
-- `DELETE /api/v1/folders/{folderId}` — Delete folder and nested items.
 
-### 2.4 AI Assistant & Context
-- `POST /api/v1/ai/chat` — Send conversational query with contextual code metadata.
-- `POST /api/v1/ai/generate` — Generate boilerplate or target function.
-- `POST /api/v1/ai/explain` — Return natural language breakdown of highlighted code.
-- `POST /api/v1/ai/debug` — Detect logical/syntax errors and propose diff fixes.
-- `POST /api/v1/ai/refactor` — Suggest clean-code improvements and diffs.
-- `POST /api/v1/ai/tests` — Auto-generate unit test suite for selected code.
+---
 
-### 2.5 Sandboxed Execution
-- `POST /api/v1/execution/run` — Execute code or controlled script in isolated Docker container.
-- `GET  /api/v1/execution/status/{jobId}` — Poll execution status and streaming logs.
-- `POST /api/v1/execution/stop/{jobId}` — Abort active execution container.
-
-### 2.6 Deployments & GitHub
-- `POST /api/v1/deployments` — Trigger build & deploy sequence for project.
-- `GET  /api/v1/deployments/project/{id}` — List deployment history with logs and URLs.
-- `GET  /api/v1/github/repos` — List authenticated GitHub repositories.
-- `POST /api/v1/github/import` — Clone repository into DevPilot project.
-- `POST /api/v1/github/commit` — Commit and push workspace changes.
-
-### 2.7 Administration (ROLE_ADMIN)
-- `GET /api/v1/admin/users` — List platform users and statuses.
-- `PUT /api/v1/admin/users/{id}/status` — Enable or suspend user account.
-- `GET /api/v1/admin/metrics` — Aggregate system telemetry, AI token usage, and container health.
+### 2.5 Future Phases (AI, Execution & Deployment)
+- `POST /api/v1/ai/chat`, `/api/v1/ai/generate`, `/api/v1/ai/explain`, `/api/v1/ai/refactor` (Phase 7)
+- `POST /api/v1/execution/run`, `GET /api/v1/execution/status/{jobId}` (Phase 8)
+- `POST /api/v1/deployments` (Phase 10)

@@ -4,8 +4,16 @@
 
 import { showToast } from './utils.js';
 import { setButtonLoading } from './components.js';
+import { apiRequest } from './api.js';
+import { storage } from './storage.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  // If user is already authenticated, redirect to dashboard
+  if (storage.isAuthenticated()) {
+    window.location.href = 'dashboard.html';
+    return;
+  }
+
   const loginForm = document.getElementById('login-form');
   const emailInput = document.getElementById('email');
   const passwordInput = document.getElementById('password');
@@ -24,16 +32,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 2. GitHub Login (UI Only for Phase 2)
+  // 2. GitHub Login (UI Only for Phase 2/5)
   if (githubBtn) {
     githubBtn.addEventListener('click', () => {
-      showToast('GitHub OAuth', 'GitHub authentication will be enabled in Phase 12.', 'info');
+      showToast('GitHub OAuth', 'GitHub OAuth authentication is scheduled for Phase 12.', 'info');
     });
   }
 
   // 3. Form Validation and Submission
   if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       let isValid = true;
@@ -67,15 +75,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!isValid) return;
 
-      // Simulated Frontend Authentication Flow for Phase 2
-      setButtonLoading(submitBtn, true, 'Signing In...');
-      setTimeout(() => {
+      setButtonLoading(submitBtn, true, 'Verifying Credentials...');
+
+      try {
+        const response = await apiRequest('/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ email, password })
+        });
+
+        if (response && response.data) {
+          storage.setAuth(response.data);
+          showToast('Welcome Back!', 'Authentication successful. Redirecting...', 'success');
+          setTimeout(() => {
+            window.location.href = 'dashboard.html';
+          }, 600);
+        } else {
+          throw new Error('Invalid response structure from authentication server');
+        }
+      } catch (err) {
         setButtonLoading(submitBtn, false);
-        showToast('Welcome Back!', 'Redirecting to your developer dashboard...', 'success');
-        setTimeout(() => {
-          window.location.href = 'dashboard.html';
-        }, 1000);
-      }, 900);
+        const errMsg = err.message || 'Invalid email or password. Please try again.';
+        showToast('Authentication Failed', errMsg, 'error');
+        setFieldError(passwordInput, passwordError, errMsg);
+      }
     });
   }
 
