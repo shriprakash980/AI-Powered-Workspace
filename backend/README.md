@@ -18,7 +18,7 @@ The **DevPilot AI Backend** is an enterprise-grade RESTful API built on **Java 2
 - **Connection Pool:** HikariCP
 - **Telemetry:** Spring Boot Actuator
 - **API Documentation:** Springdoc OpenAPI 2.6.0 (Swagger UI with Bearer JWT support)
-- **Testing:** JUnit 5, Mockito, MockMvc, H2 (test profile) — 48 automated tests passing
+- **Testing:** JUnit 5, Mockito, MockMvc, H2 (test profile) — 67 automated tests passing
 
 ---
 
@@ -27,14 +27,14 @@ The **DevPilot AI Backend** is an enterprise-grade RESTful API built on **Java 2
 com.devpilot.ai/
 ├── DevPilotApplication.java       # Application entry point
 ├── config/                        # OpenAPI (BearerAuth), CORS, and Web MVC configurations
-├── controller/                    # REST API Controllers (AuthController, AdminTestController, ProjectController, HealthController)
-├── dto/                           # Data Transfer Objects (ApiResponse, ErrorResponse, UserDTOs, ProjectDTOs)
+├── controller/                    # REST API Controllers (AuthController, ProjectController, ProjectFileController, WorkspaceController, HealthController)
+├── dto/                           # Data Transfer Objects (ApiResponse, ErrorResponse, file/, project/, user/, workspace/)
 ├── entity/                        # JPA Entities (User, Role, Project, ProjectFile, RefreshToken, ActivityLog)
 │   └── enums/                     # Domain enums (ProjectStatus, ProjectTemplate, FileType, UserStatus)
-├── exception/                     # Global exception advice and custom domain exceptions (UnauthorizedException, ForbiddenException, etc.)
-├── repository/                    # Spring Data JPA Repositories (UserRepository, RefreshTokenRepository, ProjectRepository, etc.)
+├── exception/                     # Global exception advice and custom domain exceptions (ConflictException, BadRequestException, etc.)
+├── repository/                    # Spring Data JPA Repositories (UserRepository, ProjectFileRepository, ProjectRepository, ActivityLogRepository, etc.)
 ├── security/                      # Spring Security (SecurityConfig, JwtService, JwtAuthenticationFilter, UserPrincipal, CustomUserDetailsService)
-├── service/                       # Business logic services (AuthService, RefreshTokenService, ProjectService)
+├── service/                       # Business logic services (AuthService, RefreshTokenService, ProjectService, ProjectFileService, WorkspaceService, ActivityLogService)
 └── util/                          # Internal utilities
 ```
 

@@ -5,7 +5,7 @@
 [![Backend](https://img.shields.io/badge/Backend-Java_21_Spring_Boot_3-green.svg)](https://spring.io/projects/spring-boot)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL_16_Flyway-blue.svg)](https://www.postgresql.org/)
 [![Security](https://img.shields.io/badge/Security-Spring_Security_6_JWT-red.svg)](https://jwt.io/)
-[![Tests](https://img.shields.io/badge/Tests-48%20Passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/Tests-67%20Passed-brightgreen.svg)]()
 
 **DevPilot AI** is an intelligent, cloud-native developer workspace designed to streamline code authoring, context-aware AI collaboration, isolated terminal execution, and deployment pipelines. Developed as a production-grade final-year B.Tech Computer Science and Engineering capstone project.
 
@@ -13,11 +13,12 @@
 
 ## 🌟 Core Highlights
 - **Vanilla Web Frontend:** Built purely with standards-compliant HTML5, modern CSS3 (Custom Properties & Flex/Grid), and modular ES6+ JavaScript. Absolutely no frontend framework bloat (no React, Angular, Vue, Tailwind, or Bootstrap).
-- **Deep Developer UX:** Dark-first aesthetic, split-pane IDE workspace, interactive virtual file tree, code editor, diff viewer, sandboxed console, and live DOM preview.
+- **Interactive Cloud Workspace:** Integrated file explorer tree, dynamic tab buffer, in-browser code editor, auto-saving, keyboard shortcuts (`Ctrl+S`), line gutter, and live preview.
+- **Virtual Filesystem Backend:** PostgreSQL-backed hierarchical files and folders with path traversal security, cycle-prevention on folder moves, cascading path updates, and 1MB size limit.
 - **Enterprise Spring Boot Backend:** Java 21, Spring Boot 3.3.4, Spring Security 6 with stateless JWT authentication, and Swagger/OpenAPI documentation.
 - **Robust Database Architecture:** PostgreSQL with Flyway version-controlled migrations (`V1` to `V5`), UUID primary keys, 3NF normalization, foreign key constraints, and Hibernate `validate` mode.
 - **Production-Style Security & Auth:** BCrypt password hashing, short-lived JWT access tokens, SHA-256 hashed refresh token rotation, project ownership isolation, and role-based access control (`ROLE_USER`, `ROLE_ADMIN`).
-- **Comprehensive Test Suite:** 48 automated integration, unit, and end-to-end security lifecycle tests passing out of the box.
+- **Comprehensive Test Suite:** 67 automated integration, unit, and end-to-end security lifecycle tests passing out of the box.
 
 ---
 

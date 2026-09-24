@@ -19,6 +19,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
+import com.devpilot.ai.entity.ProjectFile;
+import com.devpilot.ai.entity.enums.ProjectTemplate;
+import com.devpilot.ai.repository.ProjectFileRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Service
 @Transactional
 public class ProjectService {
@@ -26,9 +31,20 @@ public class ProjectService {
     private static final Logger log = LoggerFactory.getLogger(ProjectService.class);
 
     private final ProjectRepository projectRepository;
+    private final ProjectFileRepository projectFileRepository;
+    private final ActivityLogService activityLogService;
 
     public ProjectService(ProjectRepository projectRepository) {
+        this(projectRepository, null, null);
+    }
+
+    @Autowired
+    public ProjectService(ProjectRepository projectRepository,
+                          @Autowired(required = false) ProjectFileRepository projectFileRepository,
+                          @Autowired(required = false) ActivityLogService activityLogService) {
         this.projectRepository = projectRepository;
+        this.projectFileRepository = projectFileRepository;
+        this.activityLogService = activityLogService;
     }
 
     @Transactional(readOnly = true)
@@ -97,6 +113,13 @@ public class ProjectService {
         Project savedProject = projectRepository.save(project);
         log.info("Project created successfully in PostgreSQL with ID: {} and Name: '{}' (Owner: {})",
                 savedProject.getId(), trimmedName, ownerId);
+
+        scaffoldDefaultFiles(savedProject);
+
+        if (activityLogService != null) {
+            activityLogService.logActivity(ownerId, savedProject.getId(), "PROJECT_CREATED", "Project created: " + trimmedName);
+        }
+
         return mapToResponse(savedProject);
     }
 
@@ -126,6 +149,12 @@ public class ProjectService {
 
         Project updatedProject = projectRepository.save(project);
         log.info("Updated project ID: {} in PostgreSQL", id);
+
+        if (activityLogService != null) {
+            UUID userId = userPrincipal != null ? userPrincipal.getId() : null;
+            activityLogService.logActivity(userId, id, "PROJECT_UPDATED", "Project updated: " + updatedProject.getName());
+        }
+
         return mapToResponse(updatedProject);
     }
 
@@ -141,10 +170,104 @@ public class ProjectService {
         project.setUpdatedAt(Instant.now());
         projectRepository.save(project);
         log.info("Soft deleted project ID: {} in PostgreSQL", id);
+
+        if (activityLogService != null) {
+            UUID userId = userPrincipal != null ? userPrincipal.getId() : null;
+            activityLogService.logActivity(userId, id, "PROJECT_DELETED", "Project deleted: " + project.getName());
+        }
     }
 
     public void deleteProject(UUID id) {
         deleteProject(id, null);
+    }
+
+    private void scaffoldDefaultFiles(Project project) {
+        if (projectFileRepository == null) return;
+        try {
+            Instant now = Instant.now();
+            UUID projectId = project.getId();
+
+            // 1. README.md
+            String readmeContent = "# " + project.getName() + "\n\n"
+                    + (project.getDescription() != null ? project.getDescription() + "\n\n" : "")
+                    + "- **Language:** " + project.getLanguage() + "\n"
+                    + "- **Template:** " + project.getTemplate() + "\n\n"
+                    + "Welcome to your DevPilot AI workspace!\n";
+            projectFileRepository.save(ProjectFile.builder()
+                    .projectId(projectId)
+                    .name("README.md")
+                    .path("README.md")
+                    .fileType("markdown")
+                    .content(readmeContent)
+                    .isDirectory(false)
+                    .createdAt(now)
+                    .updatedAt(now)
+                    .build());
+
+            // 2. Starter files based on language/template
+            String lang = project.getLanguage().toLowerCase();
+            if (lang.contains("html") || lang.contains("web") || lang.contains("javascript") || project.getTemplate() == ProjectTemplate.BLANK) {
+                String indexHtml = "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <title>"
+                        + project.getName() + "</title>\n  <link rel=\"stylesheet\" href=\"style.css\">\n</head>\n<body>\n  <h1>Welcome to "
+                        + project.getName() + "</h1>\n  <p>Built with DevPilot AI.</p>\n  <script src=\"app.js\"></script>\n</body>\n</html>";
+                projectFileRepository.save(ProjectFile.builder()
+                        .projectId(projectId)
+                        .name("index.html")
+                        .path("index.html")
+                        .fileType("html")
+                        .content(indexHtml)
+                        .isDirectory(false)
+                        .createdAt(now)
+                        .updatedAt(now)
+                        .build());
+
+                projectFileRepository.save(ProjectFile.builder()
+                        .projectId(projectId)
+                        .name("style.css")
+                        .path("style.css")
+                        .fileType("css")
+                        .content("/* DevPilot Styles */\nbody {\n  font-family: sans-serif;\n  margin: 2rem;\n  background: #0b0f14;\n  color: #f8fafc;\n}\n")
+                        .isDirectory(false)
+                        .createdAt(now)
+                        .updatedAt(now)
+                        .build());
+
+                projectFileRepository.save(ProjectFile.builder()
+                        .projectId(projectId)
+                        .name("app.js")
+                        .path("app.js")
+                        .fileType("javascript")
+                        .content("// " + project.getName() + " entry point\nconsole.log('DevPilot workspace active');\n")
+                        .isDirectory(false)
+                        .createdAt(now)
+                        .updatedAt(now)
+                        .build());
+            } else if (lang.contains("java")) {
+                projectFileRepository.save(ProjectFile.builder()
+                        .projectId(projectId)
+                        .name("Main.java")
+                        .path("Main.java")
+                        .fileType("java")
+                        .content("public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello from " + project.getName() + "!\");\n    }\n}\n")
+                        .isDirectory(false)
+                        .createdAt(now)
+                        .updatedAt(now)
+                        .build());
+            } else if (lang.contains("python")) {
+                projectFileRepository.save(ProjectFile.builder()
+                        .projectId(projectId)
+                        .name("main.py")
+                        .path("main.py")
+                        .fileType("python")
+                        .content("# DevPilot AI Python Project\n\ndef main():\n    print(\"Hello from " + project.getName() + "!\")\n\nif __name__ == '__main__':\n    main()\n")
+                        .isDirectory(false)
+                        .createdAt(now)
+                        .updatedAt(now)
+                        .build());
+            }
+        } catch (Exception e) {
+            log.warn("Could not scaffold default files for project {}: {}", project.getId(), e.getMessage());
+        }
     }
 
     private void verifyOwnership(Project project, UserPrincipal userPrincipal) {

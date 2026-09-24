@@ -32,12 +32,16 @@
           <button class="btn btn-sm btn-ghost" id="toggle-explorer-btn" title="Toggle File Tree">
             <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
           </button>
-          <span class="project-title">devpilot-cloud-platform</span>
-          <span class="badge badge-success">Running</span>
+          <span class="project-title" id="workspace-project-name">Loading...</span>
+          <span class="badge badge-success" id="workspace-project-status">Active</span>
         </div>
       </div>
 
       <div class="workspace-nav-center workspace-actions">
+        <button class="btn btn-sm btn-secondary" id="workspace-save-btn" title="Save Active File (Ctrl+S)">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span>Save</span>
+        </button>
         <button class="btn btn-sm btn-primary" id="workspace-run-btn" title="Run Sandboxed Project (Ctrl+R)">
           <svg class="icon icon-sm" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           <span>Run</span>
@@ -140,9 +144,7 @@
           <div class="editor-gutter" id="editor-gutter">
             <!-- Line numbers dynamically populated -->
           </div>
-          <div class="editor-canvas" id="editor-canvas">
-            <!-- Active file source code populated -->
-          </div>
+          <textarea class="editor-canvas" id="editor-canvas" spellcheck="false" placeholder="// Select a file from the explorer or create a new file"></textarea>
           <div class="editor-minimap-placeholder" title="Minimap Preview"></div>
         </div>
 
